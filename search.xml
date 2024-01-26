@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>Mac上iCloud下载慢</title>
+      <link href="/2024/01/26/Bug/Mac%E4%B8%8AiCloud%E4%B8%8B%E8%BD%BD%E6%85%A2/"/>
+      <url>/2024/01/26/Bug/Mac%E4%B8%8AiCloud%E4%B8%8B%E8%BD%BD%E6%85%A2/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Mac-上-iCloud-下载慢"><a href="#Mac-上-iCloud-下载慢" class="headerlink" title="Mac 上 iCloud 下载慢"></a>Mac 上 iCloud 下载慢</h2><p>​Mac 上开启了 icloud 同步云盘内容，但是下载很慢，导致桌面和文稿中文件一直被同步占用，无法进行复制或删除等操作。</p><h3 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h3><p>​设置中关闭 icloud 同步。具体在，设置 &gt;&gt; Apple ID &gt;&gt; iCloud &gt;&gt; iCloud云盘 ，关闭 “同步此 mac” 和 “桌面和文稿文件夹” 选项。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Bug </category>
+          
+          <category> Mac </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Bug </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>InnoDB数据页结构</title>
       <link href="/2024/01/21/Mysql%E6%95%B0%E6%8D%AE%E5%BA%93/5.%20InnoDB%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/"/>
       <url>/2024/01/21/Mysql%E6%95%B0%E6%8D%AE%E5%BA%93/5.%20InnoDB%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/</url>
@@ -23,32 +50,6 @@
             <tag> Mysql </tag>
             
         </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Hello blog</title>
-      <link href="/2024/01/20/Hello-blog/"/>
-      <url>/2024/01/20/Hello-blog/</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Hello World</title>
-      <link href="/2024/01/20/hello-world/"/>
-      <url>/2024/01/20/hello-world/</url>
-      
-        <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;hello world&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
-      
-      
       
     </entry>
     
