@@ -4,11 +4,24 @@
   
     
     <entry>
+      <title></title>
+      <link href="/2024/01/27/C-1-%E4%BA%8C%E5%8F%89%E6%A0%91%E4%B8%8E%E7%BA%A2%E9%BB%91%E6%A0%91/"/>
+      <url>/2024/01/27/C-1-%E4%BA%8C%E5%8F%89%E6%A0%91%E4%B8%8E%E7%BA%A2%E9%BB%91%E6%A0%91/</url>
+      
+        <content type="html"><![CDATA[<h1 id="红黑树"><a href="#红黑树" class="headerlink" title="红黑树"></a>红黑树</h1><h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><p>​红黑树的用途：</p><ol><li>Key–Value 查找。</li><li>顺序。</li></ol><p>​强查找时所用数据结构：</p><ul><li><p>rbtree</p></li><li><p>hash</p></li><li><p>b&#x2F;b+ tree</p></li><li><p>跳表</p></li></ul><h2 id="性质"><a href="#性质" class="headerlink" title="性质"></a>性质</h2><ol><li>每个结点是红的或者黑的</li><li>根结点是黑的</li><li>每个叶子结点是黑的</li><li>如果一个结点是红的，则它的两个儿子都是黑的</li><li>对每个结点，从该结点到其子孙结点的所有路径上的包含相同数目的黑结点</li></ol>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Hexo 邮件 icon 点击 404</title>
       <link href="/2024/01/26/Bug-Hexo%E4%B8%BB%E9%A2%98%E9%82%AE%E4%BB%B6404/"/>
       <url>/2024/01/26/Bug-Hexo%E4%B8%BB%E9%A2%98%E9%82%AE%E4%BB%B6404/</url>
       
-        <content type="html"><![CDATA[<h1 id="Hexo-主题-icon-点击后404"><a href="#Hexo-主题-icon-点击后404" class="headerlink" title="Hexo 主题 icon 点击后404"></a>Hexo 主题 icon 点击后404</h1><p>​在主页面中，点击 icon 的邮件后报错 404 。</p><img src="https://telegraph-image-9wl.pages.dev/file/1a47e264cd5492892b9d5.png" style="zoom:33%;" ><h1 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h1><p>​_config.yml 文件中添加  <code> mailto:example:email.com</code>。</p><img src = "https://telegraph-image-9wl.pages.dev/file/e5eafe32fdf1d570f74cd.png" style="zoom:33%;">]]></content>
+        <content type="html"><![CDATA[<h1 id="Hexo-主题-icon-点击后404"><a href="#Hexo-主题-icon-点击后404" class="headerlink" title="Hexo 主题 icon 点击后404"></a>Hexo 主题 icon 点击后404</h1><p>​在主页面中，点击 icon 的邮件后报错 404 。</p><p>#@Q#</p><h1 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h1><p>​_config.yml 文件中添加  <code> mailto:example:email.com</code>。</p><img src = "https://telegraph-image-9wl.pages.dev/file/e5eafe32fdf1d570f74cd.png" style="zoom:33%;">]]></content>
       
       
       <categories>
