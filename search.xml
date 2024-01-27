@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>Hexo 邮件 icon 点击 404</title>
+      <link href="/2024/01/26/Bug-Hexo%E4%B8%BB%E9%A2%98%E9%82%AE%E4%BB%B6404/"/>
+      <url>/2024/01/26/Bug-Hexo%E4%B8%BB%E9%A2%98%E9%82%AE%E4%BB%B6404/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Hexo-主题-icon-点击后404"><a href="#Hexo-主题-icon-点击后404" class="headerlink" title="Hexo 主题 icon 点击后404"></a>Hexo 主题 icon 点击后404</h1><p>​在主页面中，点击 icon 的邮件后报错 404 。</p><img src="https://telegraph-image-9wl.pages.dev/file/1a47e264cd5492892b9d5.png" style="zoom:33%;" ><h1 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h1><p>​_config.yml 文件中添加  <code> mailto:example:email.com</code>。</p><img src = "https://telegraph-image-9wl.pages.dev/file/e5eafe32fdf1d570f74cd.png" style="zoom:33%;">]]></content>
+      
+      
+      <categories>
+          
+          <category> Bug </category>
+          
+          <category> Hexo </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Bug </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Mac上iCloud下载慢</title>
       <link href="/2024/01/26/Bug-Mac%E4%B8%8AiCloud%E4%B8%8B%E8%BD%BD%E6%85%A2/"/>
       <url>/2024/01/26/Bug-Mac%E4%B8%8AiCloud%E4%B8%8B%E8%BD%BD%E6%85%A2/</url>
