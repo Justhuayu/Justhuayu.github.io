@@ -4,13 +4,29 @@
   
     
     <entry>
-      <title></title>
+      <title>二叉树与红黑树</title>
       <link href="/2024/01/27/C-1-%E4%BA%8C%E5%8F%89%E6%A0%91%E4%B8%8E%E7%BA%A2%E9%BB%91%E6%A0%91/"/>
       <url>/2024/01/27/C-1-%E4%BA%8C%E5%8F%89%E6%A0%91%E4%B8%8E%E7%BA%A2%E9%BB%91%E6%A0%91/</url>
       
         <content type="html"><![CDATA[<h1 id="红黑树"><a href="#红黑树" class="headerlink" title="红黑树"></a>红黑树</h1><h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><p>​红黑树的用途：</p><ol><li>Key–Value 查找。</li><li>顺序。</li></ol><p>​强查找时所用数据结构：</p><ul><li><p>rbtree</p></li><li><p>hash</p></li><li><p>b&#x2F;b+ tree</p></li><li><p>跳表</p></li></ul><h2 id="性质"><a href="#性质" class="headerlink" title="性质"></a>性质</h2><ol><li>每个结点是红的或者黑的</li><li>根结点是黑的</li><li>每个叶子结点是黑的</li><li>如果一个结点是红的，则它的两个儿子都是黑的</li><li>对每个结点，从该结点到其子孙结点的所有路径上的包含相同数目的黑结点</li></ol>]]></content>
       
       
+      <categories>
+          
+          <category> C++ </category>
+          
+          <category> 零声Linux </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> C++ </tag>
+            
+            <tag> 数据结构 </tag>
+            
+        </tags>
       
     </entry>
     
