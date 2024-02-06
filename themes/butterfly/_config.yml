@@ -158,7 +158,7 @@ toc:
   post: true #文章页是否显示 TOC
   page: true #普通页面是否显示 TOC
   number: true #是否显示章节数
-  expand: false #是否展开 TOC
+  expand: true #是否展开 TOC
   style_simple: true # for post 简洁模式（侧边栏只显示 TOC, 只对文章页有效 ）
   scroll_percent: true #是否显示滚动进度百分比
 
@@ -289,8 +289,9 @@ busuanzi:
 # Time difference between publish date and now (網頁運行時間)
 # Formal: Month/Day/Year Time or Year/Month/Day Time
 runtimeshow:
-  enable: false
+  enable: true
   publish_date:
+  formal:
 
 # Aside widget - Newest Comments
 newest_comments:
@@ -807,11 +808,11 @@ wordcount:
 
 # medium-zoom
 # https://github.com/francoischalifour/medium-zoom
-medium_zoom: false
+medium_zoom: true
 
 # fancybox
 # https://fancyapps.com/fancybox/
-fancybox: true
+fancybox: false
 
 # Tag Plugins settings (標籤外掛)
 # --------------------------------------
