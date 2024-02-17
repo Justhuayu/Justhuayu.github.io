@@ -1,0 +1,350 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CMake | Just花语的博客</title><meta name="author" content="Just花语"><meta name="copyright" content="Just花语"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="[TOC] CMake1. CMake使用1. 内部构建  ==cmake .==  ，’ . ‘ 表示在当前目录构建。 在当前目录 ==make==，表示当前目录进行 ‘make’ 实际构建，生成可执行文件。   2. 外部构建  创建目录 ==mkdir build==。 构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMake">
+<meta property="og:url" content="https://justhuayu.github.io/2024/02/17/C-%E9%9B%B6%E5%A3%B0linux-8-1-CMake/index.html">
+<meta property="og:site_name" content="Just花语的博客">
+<meta property="og:description" content="[TOC] CMake1. CMake使用1. 内部构建  ==cmake .==  ，’ . ‘ 表示在当前目录构建。 在当前目录 ==make==，表示当前目录进行 ‘make’ 实际构建，生成可执行文件。   2. 外部构建  创建目录 ==mkdir build==。 构">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://telegraph-image-9wl.pages.dev/file/ecd911b3d25ad0d19b329.jpg">
+<meta property="article:published_time" content="2024-02-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-02-17T05:48:56.777Z">
+<meta property="article:author" content="Just花语">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://telegraph-image-9wl.pages.dev/file/ecd911b3d25ad0d19b329.jpg"><link rel="shortcut icon" href="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png"><link rel="canonical" href="https://justhuayu.github.io/2024/02/17/C-%E9%9B%B6%E5%A3%B0linux-8-1-CMake/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=4.12.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CMake',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-02-17 13:48:56'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 7.1.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr class="custom-hr"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/ecd911b3d25ad0d19b329.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Just花语的博客"><span class="site-name">Just花语的博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">CMake</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2024-02-16T16:00:00.000Z" title="发表于 2024-02-17 00:00:00">2024-02-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/">C++</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/%E9%9B%B6%E5%A3%B0Linux/">零声Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="CMake"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><div class="top-img" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/ecd911b3d25ad0d19b329.jpg');"></div><article class="post-content" id="article-container"><p>[TOC]</p>
+<h1 id="CMake"><a href="#CMake" class="headerlink" title="CMake"></a>CMake</h1><h2 id="1-CMake使用"><a href="#1-CMake使用" class="headerlink" title="1. CMake使用"></a>1. CMake使用</h2><h3 id="1-内部构建"><a href="#1-内部构建" class="headerlink" title="1. 内部构建"></a>1. 内部构建</h3><blockquote>
+<ol>
+<li>==cmake .==  ，’ . ‘ 表示在当前目录构建。</li>
+<li>在当前目录 ==make==，表示当前目录进行 ‘make’ 实际构建，生成可执行文件。</li>
+</ol>
+</blockquote>
+<h3 id="2-外部构建"><a href="#2-外部构建" class="headerlink" title="2. 外部构建"></a>2. 外部构建</h3><blockquote>
+<ol>
+<li>创建目录 ==mkdir build==。</li>
+<li>构建 ==cmake ..== ，’ .. ‘ 表示从上层构建。（其他路径构建用 ==cmake &lt;工程的全路径&gt;==）</li>
+<li>在当前目录 ==make==，表示当前目录进行 ‘make’ 实际构建，生成可执行文件。</li>
+</ol>
+</blockquote>
+<blockquote alt="warn"><p>通过外部编译进行工程构建，PROJECT_SOURCE_DIR 仍然指代工程路径，即cmake/t1 而 PROJECT_BINARY_DIR 则指代编译路径，即cmake/t1/build</p></blockquote>
+
+<h3 id="3-约定目录"><a href="#3-约定目录" class="headerlink" title="3. 约定目录"></a>3. 约定目录</h3><ol>
+<li>子目录==src==，用来放置==工程源代码==。</li>
+<li>子目录==doc==，用来放置这个工程的文档==工程名.txt==。</li>
+<li>子目录==lib==，用于放置工程==共享库==。</li>
+<li>工程目录添加文本文件 ==COPYRIGHT, README==。</li>
+<li>工程目录添加一个==runhello.sh== 脚本，用来==调用工程二进制文件==。</li>
+<li>==构建后==的目标文件放入构建目录的==bin 子目录==。</li>
+<li>安装：将==工程二进制==与==runhello.sh== 安装至/usr/bin，将==doc 目录的内容==以及==COPYRIGHT/README== 安装到/usr/share/doc/cmake/项目名。</li>
+</ol>
+<h3 id="4-安装共享库"><a href="#4-安装共享库" class="headerlink" title="4. 安装共享库"></a>4. 安装共享库</h3><p>​	使用外部构建，即在build文件下执行下列操作。</p>
+<ol>
+<li>cmake -DCMAKE_INSTALL_PREFIX=/Users/justhuayu/mylibs .. </li>
+<li>make </li>
+<li>make install</li>
+</ol>
+<h3 id="5-使用共享库"><a href="#5-使用共享库" class="headerlink" title="5. 使用共享库"></a>5. 使用共享库</h3><p>​	项目路径如下。</p>
+<img src="https://telegraph-image-9wl.pages.dev/file/ac58a15f15d7acdb25de5.png" alt="image-20240217134118637" style="zoom:50%;">
+
+<p>​	子目录 CMakeLists.txt 文件代码如下：</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CMAKE_MINIMUM_REQUIRED</span>(VERSION <span class="number">2.8</span>.<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(main main.c)</span><br><span class="line"><span class="comment">#添加项目头文件目录</span></span><br><span class="line"><span class="keyword">INCLUDE_DIRECTORIES</span>(../<span class="keyword">include</span>/hello)</span><br><span class="line"><span class="comment">#设置项目lib库目录</span></span><br><span class="line"><span class="keyword">SET</span>(LIB_PATH <span class="variable">${PROJECT_SOURCE_DIR}</span>/lib)</span><br><span class="line"><span class="comment">#MESSAGE(STATUS "LIB_PATH is " ${LIB_PATH})</span></span><br><span class="line"><span class="comment">#链接动态库和项目</span></span><br><span class="line"><span class="keyword">TARGET_LINK_LIBRARIES</span>(main <span class="variable">${LIB_PATH}</span>/libhello.dylib)</span><br><span class="line"><span class="comment">#在bin目录下生成二进制文件</span></span><br><span class="line"><span class="keyword">SET</span>(EXECUTABLE_OUTPUT_PATH <span class="variable">${PROJECT_BINARY_DIR}</span>/bin)</span><br></pre></td></tr></tbody></table></figure>
+
+<ol>
+<li>cmake .. +  make 构建。</li>
+<li>linux使用ldd bin/main ，macos使用 otool -L bin/main 查看链接库（静态库不显示）。</li>
+</ol>
+<h2 id="2-语法"><a href="#2-语法" class="headerlink" title="2. 语法"></a>2. 语法</h2><h3 id="1-PROJECT"><a href="#1-PROJECT" class="headerlink" title="1. PROJECT"></a>1. PROJECT</h3><blockquote>
+<p>PROJECT(projectname [CXX] [C] [Java])</p>
+</blockquote>
+<p>​	这个指令==定义工程名称==，并可指定工程支持的语言，支持的语言列表是可以忽略的，默认情况表示支持所有语言。</p>
+<p>​	隐式的定义了两个 cmake 变量: <projectname>_BINARY_DIR 以及<projectname> _SOURCE_DIR。例如 <code>PROJECT(hello)</code>，则为 HELLO_BINARY_DIR 和 HELLO_SOURCE_DIR。</projectname></projectname></p>
+<p>​	cmake 也预定义了 ==PROJECT_BINARY_DIR== 和 ==PROJECT_SOURCE_DIR==变量（==建议使用==），他们的值分别跟HELLO_BINARY_DIR 与HELLO_SOURCE_DIR 一致。</p>
+<pre><code>1. PROJECT_BINARY_DIR 表示==编译路径==。
+1. PROJECT_SOURCE_DIR 表示==项目路径==。
+</code></pre>
+<h3 id="2-SET"><a href="#2-SET" class="headerlink" title="2. SET"></a>2. SET</h3><blockquote>
+<p>SET(VAR [VALUE] [CACHE TYPE DOCSTRING [FORCE]])</p>
+</blockquote>
+<p>​	SET 指令可以用来==显式的定义变量==。<code>SET(SRC_LIST main.c t1.c t2.c)</code>。</p>
+<h3 id="3-MESSAGE"><a href="#3-MESSAGE" class="headerlink" title="3. MESSAGE"></a>3. MESSAGE</h3><blockquote>
+<p>MESSAGE([SEND_ERROR | STATUS | FATAL_ERROR] “打印信息” …)</p>
+</blockquote>
+<p>​	这个指令用于向终端==输出用户定义的信息==，包含了三种类型: </p>
+<ol>
+<li><p>==SEND_ERROR==，产生错误，生成过程被跳过。</p>
+<p><code>message(SEND_ERROR "cmake is error")</code></p>
+</li>
+<li><p>==SATUS==，输出前缀为—的信息。</p>
+<p><code>		message(STATUS "This is BINARY dir " ${PROJECT_BINARY_DIR})</code></p>
+</li>
+<li><p>==FATAL_ERROR==，立即终止所有cmake 过程。</p>
+</li>
+</ol>
+<h3 id="4-ADD-EXECUTABLE"><a href="#4-ADD-EXECUTABLE" class="headerlink" title="4. ADD_EXECUTABLE"></a>4. ADD_EXECUTABLE</h3><blockquote>
+<p>ADD_EXECUTABLE(二进制文件名 ${源文件变量名})</p>
+</blockquote>
+<p>​	生成可执行文件，相关的源文件是==${源文件变量名}==中定义的源文件列表。</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">PROJECT</span>(hello)</span><br><span class="line"><span class="keyword">SET</span>(src_file main.c)</span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(hello <span class="variable">${src_file}</span>)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>​	上述将 main.c 文件生成 hello 可执行文件，等价于</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">PROJECT</span>(hello)</span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(hello main.c)</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="5-ADD-SUBDIRECTORY"><a href="#5-ADD-SUBDIRECTORY" class="headerlink" title="5. ADD_SUBDIRECTORY"></a>5. ADD_SUBDIRECTORY</h3><blockquote>
+<p>ADD_SUBDIRECTORY(source_dir [binary_dir] [EXCLUDE_FROM_ALL])</p>
+</blockquote>
+<p>​	向当前工程==添加存放源文件的子目录==，并可以指定中间二进制和目标二进制存放的位置。</p>
+<p>​	EXCLUDE_FROM_ALL 参数的含义是将==这个目录从编译过程中排除==。</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ADD_SUBDIRECTORY</span>(src bin)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>​	上述代码会将 src 子目录加入工程，并指定编译输出(包含编译中间结果)路径为 bin 目录。</p>
+<h3 id="6-指定保存目标二进制位置"><a href="#6-指定保存目标二进制位置" class="headerlink" title="6. 指定保存目标二进制位置"></a>6. 指定保存目标二进制位置</h3><blockquote>
+<p>EXECUTABLE_OUTPUT_PATH 和 LIBRARY_OUTPUT_PATH 变量</p>
+</blockquote>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span>(EXECUTABLE_OUTPUT_PATH <span class="variable">${PROJECT_BINARY_DIR}</span>/bin)</span><br><span class="line"><span class="keyword">SET</span>(LIBRARY_OUTPUT_PATH <span class="variable">${PROJECT_BINARY_DIR}</span>/lib)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>​	上述代码写在哪个 CMakeLists.txt ：在哪里 ADD_EXECUTABLE  或 ADD_LIBRARY，如果需要改变目标存放路径，就在哪里加入上述的定义。</p>
+<h3 id="7-INSTALL"><a href="#7-INSTALL" class="headerlink" title="7. INSTALL"></a>7. INSTALL</h3><blockquote>
+<p>INSTALL(TARGETS targets…</p>
+<p>[[ARCHIVE|LIBRARY|RUNTIME]</p>
+<p>[DESTINATION </p><dir>]<p></p>
+<p>[PERMISSIONS permissions…]</p>
+<p>[CONFIGURATIONS</p>
+<p>[Debug|Release|…]]</p>
+<p>[COMPONENT <component>]</component></p>
+<p>[OPTIONAL]</p>
+<p>] […])</p>
+</dir></blockquote>
+<h3 id="8-清理工程"><a href="#8-清理工程" class="headerlink" title="8. 清理工程"></a>8. 清理工程</h3><blockquote>
+<p>make clean</p>
+</blockquote>
+<p>​	和 Makefile 一样，使用 <code>make clean</code> 对构建结果进行清理。</p>
+<h3 id="9-ADD-LIBRARY"><a href="#9-ADD-LIBRARY" class="headerlink" title="9. ADD_LIBRARY"></a>9. ADD_LIBRARY</h3><blockquote>
+<p>ADD_LIBRARY(libname [SHARED|STATIC|MODULE] [EXCLUDE_FROM_ALL]</p>
+<p>source1 source2 … sourceN)</p>
+</blockquote>
+<p>​	生成库文件。</p>
+<p>​	libname不用写全称，写 hello，cmake会自动生成 libhello.X。</p>
+<ol>
+<li><p>SHARED，动态库</p>
+</li>
+<li><p>STATIC，静态库</p>
+</li>
+<li><p>MODULE，在使用 dyld 的系统有效，如果不支持dyld，则被当作SHARED 对待。</p>
+</li>
+</ol>
+<p>​	EXCLUDE_FROM_ALL 参数的意思是这个库不会被默认构建，除非有其他的组件依赖或者手工构建。</p>
+<blockquote>
+<p>ADD_LIBRARY(hello SHARED ${LIBHELLO_SRC})#SHARED动态库</p>
+</blockquote>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#在 lib 目录下建立 CMakeLists.txt，内容如下：</span></span><br><span class="line"><span class="keyword">SET</span>(LIBHELLO_SRC hello.c)</span><br><span class="line"><span class="keyword">ADD_LIBRARY</span>(hello SHARED <span class="variable">${LIBHELLO_SRC}</span>)<span class="comment">#SHARED动态库</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>​	然后 <code>cmake ..</code> ， <code> make</code> ，此时可以在lib 目录得到一个==libhello.so==，这就是我们期望的共享库。</p>
+<p>​	指定 libhello.so 生成的位置，可以通过在==主工程文件==CMakeLists.txt 中修改 ==ADD_SUBDIRECTORY(lib)==指令来指定一个编译输出位置 或者 在 ==lib/CMakeLists.txt== 中添加 ==SET(LIBRARY_OUTPUT_PATH &lt;路径&gt;)==来指定一个新的位置。</p>
+<h3 id="10-SET-TARGET-PROPERTIES"><a href="#10-SET-TARGET-PROPERTIES" class="headerlink" title="10. SET_TARGET_PROPERTIES"></a>10. SET_TARGET_PROPERTIES</h3><blockquote>
+<p>SET_TARGET_PROPERTIES(target1 target2 … PROPERTIES prop1 value1 prop2 value2 …)</p>
+</blockquote>
+<p>​	设置输出的名称，对于动态库，还可以用来指定动态库版本和 API 版本。</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ADD_LIBRARY</span>(hello STATIC <span class="variable">${LIBHELLO_SRC}</span>)<span class="comment">#STATIC静态库</span></span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote alt="danger"><p>工程中可同时存在静态库和动态库，只不过<strong style="color:red;">动态库后缀.so，静态库后缀.a</strong>。但当存在动态库时，使用上述命令会报错，因为<strong style="color:red;">hello 作为一个target 是不能重名的</strong>，所以，静态库构建指令无效。</p></blockquote>
+
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span>(LIBHELLO_SRC hello.c)</span><br><span class="line"><span class="keyword">ADD_LIBRARY</span>(hello_static STATIC <span class="variable">${LIBHELLO_SRC}</span>)<span class="comment">#STATIC静态库</span></span><br><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello_static PROPERTIES OUTPUT_NAME <span class="string">"hello"</span>) </span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote alt="warn"><p>上述代码执行后即可得到动态库和静态库，如果只有一个，则考虑下述解决方式</p></blockquote>
+
+<p>​	此时查看构建结果，发现==hello.so==消失，只有==hello.a==。cmake 在构建一个新的target 时，会尝试==清理掉其他使用这个名字的库==，因为，在构建libhello.a 时，就会清理掉libhello.so。</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 向lib/CMakeLists.txt 中添加:</span></span><br><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello PROPERTIES CLEAN_DIRECT_OUTPUT <span class="number">1</span>)</span><br><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello_static PROPERTIES CLEAN_DIRECT_OUTPUT <span class="number">1</span>)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>​	这时候，我们再次进行构建，会发现build/lib 目录中同时生成了libhello.so 和 libhello.a。</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET_TARGET_PROPERTIES</span>(hello PROPERTIES VERSION <span class="number">1.2</span> SOVERSION <span class="number">1</span>) </span><br></pre></td></tr></tbody></table></figure>
+
+<p>​	VERSION 指代动态库版本，SOVERSION 指代 API 版本。</p>
+<h3 id="11-INCLUDE-DIRECTORIES"><a href="#11-INCLUDE-DIRECTORIES" class="headerlink" title="11. INCLUDE_DIRECTORIES"></a>11. INCLUDE_DIRECTORIES</h3><blockquote>
+<p>INCLUDE_DIRECTORIES([AFTER|BEFORE] [SYSTEM] dir1 dir2 …)</p>
+</blockquote>
+<p>​	向工程添加多个特定的==头文件搜索路径==，路径之间用空格分割，如果路径中包含了空格，可以使用双引号将它括起来，==默认==的行为是追加到当前的==头文件搜索路径的后面==。</p>
+<p>​	控制将头文件搜索路径放在前面还是后面：</p>
+<ol>
+<li>CMAKE_INCLUDE_DIRECTORIES_BEFORE，通过==SET 这个cmake 变量为on==，可以将添加的==头文件搜索路径==放在已有路径的==前面==。</li>
+<li>通过AFTER 或者BEFORE 参数，也可以控制是追加还是置前。</li>
+</ol>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INCLUDE_DIRECTORIES</span>(/usr/<span class="keyword">include</span>/hello)</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote alt="warn"><p>上述代码执行后找到头文件，但可能会报错</p></blockquote>	
+
+<p>​	进入build 目录，重新进行构建，这是找不到 hello.h 的错误已经消失，但是出现了一个新的错误：<code>main.c:(.text+0x12): undefined reference to HelloFunc</code>因为我们并没有==link 到共享库libhello== 上。</p>
+<h3 id="12-LINK-DIRECTORIES"><a href="#12-LINK-DIRECTORIES" class="headerlink" title="12. LINK_DIRECTORIES"></a>12. LINK_DIRECTORIES</h3><blockquote>
+<p>LINK_DIRECTORIES(directory1 directory2 …)</p>
+</blockquote>
+<p>​	==添加==非标准的==共享库搜索路径==，比如，在工程内部同时存在共享库和可执行二进制，在编译时就需要指定一下这些共享库的路径。</p>
+<h3 id="13-TARGET-LINK-LIBRARIES"><a href="#13-TARGET-LINK-LIBRARIES" class="headerlink" title="13. TARGET_LINK_LIBRARIES"></a>13. TARGET_LINK_LIBRARIES</h3><blockquote>
+<p>TARGET_LINK_LIBRARIES(target library1 &lt;debug | optimized&gt; library2 …)</p>
+</blockquote>
+<p>​	为 target  ==添加需要链接的共享库==。</p>
+<figure class="highlight cmake"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">TARGET_LINK_LIBRARIES</span>(main hello)</span><br><span class="line"><span class="comment">#或者 链接多态库</span></span><br><span class="line"><span class="keyword">TARGET_LINK_LIBRARIES</span>(main hello.dylib)</span><br><span class="line"><span class="comment">#或者 链接静态库</span></span><br><span class="line"><span class="keyword">TARGET_LINK_LIBRARIES</span>(main hello.a)</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h3 id="基础语法"><a href="#基础语法" class="headerlink" title="**基础语法"></a>**基础语法</h3><blockquote>
+<p>变量使用==${}==方式取值，但是在IF 控制语句中是直接使用变量名。</p>
+</blockquote>
+<blockquote>
+<p>指令(参数1 参数 2…)，参数之间使用==空格==或==分号==分开。</p>
+</blockquote>
+<p>​	<code> ADD_EXECUTABLE(hello main.c func.c)</code> 或者 <code>ADD_EXECUTABLE(hello main.c;func.c)</code></p>
+<blockquote>
+<p>指令是大小写==无关==的，参数和变量是大小写==相关==的。==推荐全部使用大写指令==。</p>
+</blockquote>
+<blockquote>
+<p>源文件的文件名是中间==包含了空格==，这时候必须使用==双引号==。</p>
+</blockquote>
+<p>​	<code>SET(SRC_LIST fu nc.c</code> 报错找不到fu和nc.c文件，必须写成 <code>SET(SRC_LIST "fu nc.c")</code>。</p>
+<blockquote>
+<p>可以==忽略==掉source 列表中的==源文件后缀==</p>
+</blockquote>
+<p>​	<code>ADD_EXECUTABLE(t1 main)</code>，cmake 会自动的在本目录查找main.c 或者main.cpp等，当然，最好不要偷这个懒，以免这个目录确实存在一个 main.c 一个main。</p>
+<p><a target="_blank" rel="noopener" href="https://www.yuque.com/linuxer/xngi03/cs5y85">参考文章：CMake 零声参考资料</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.yuque.com/linuxer/xngi03/qh9lve">参考文章：CMake 零声实战</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://justhuayu.github.io">Just花语</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://justhuayu.github.io/2024/02/17/C-%E9%9B%B6%E5%A3%B0linux-8-1-CMake/">https://justhuayu.github.io/2024/02/17/C-%E9%9B%B6%E5%A3%B0linux-8-1-CMake/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://justhuayu.github.io" target="_blank">Just花语的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a><a class="post-meta__tags" href="/tags/%E5%B7%A5%E5%85%B7/">工具</a></div><div class="post_share"><div class="social-share" data-image="https://telegraph-image-9wl.pages.dev/file/ecd911b3d25ad0d19b329.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/02/15/C-%E9%9B%B6%E5%A3%B0linux-8-Makefile/" title="Makefile"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/57abc79d14222701072c8.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Makefile</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/02/15/C-%E9%9B%B6%E5%A3%B0linux-8-Makefile/" title="Makefile"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/57abc79d14222701072c8.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-15</div><div class="title">Makefile</div></div></a></div><div><a href="/2024/01/27/C-%E9%9B%B6%E5%A3%B0linux-1-%E7%BA%A2%E9%BB%91%E6%A0%91/" title="红黑树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/4259e776135f8cd61103c.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-27</div><div class="title">红黑树</div></div></a></div><div><a href="/2024/02/06/C-%E9%9B%B6%E5%A3%B0linux-1-1-%E4%BA%8C%E5%8F%89%E6%9F%A5%E6%89%BE%E6%A0%91/" title="红黑树基础 ----> 二叉查找树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/1c883f7f427a1722a25a3.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-06</div><div class="title">红黑树基础 ----&gt; 二叉查找树</div></div></a></div><div><a href="/2024/02/06/C-%E9%97%AE%E9%A2%98-1-template-%E4%B8%ADclass%E5%92%8Ctypename%E5%8C%BA%E5%88%AB/" title="模版template <class T> 和 template <typename T> 区别"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/de4af16c0a3cb300d0b88.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-06</div><div class="title">模版template &lt;class T&gt; 和 template &lt;typename T&gt; 区别</div></div></a></div><div><a href="/2024/02/07/C-%E9%97%AE%E9%A2%98-2-Node-node%E5%92%8CNode-node/" title="BSTree::Node* &amp;node和BSTree::Node &amp;node 区别"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/40474d496fa9353349be8.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-07</div><div class="title">BSTree::Node* &amp;node和BSTree::Node &amp;node 区别</div></div></a></div><div><a href="/2024/02/15/C-%E9%9B%B6%E5%A3%B0linux-2-B%E6%A0%91/" title="B树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/ef24b06465da1157f2652.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-15</div><div class="title">B树</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CMake"><span class="toc-number">1.</span> <span class="toc-text">CMake</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-CMake%E4%BD%BF%E7%94%A8"><span class="toc-number">1.1.</span> <span class="toc-text">1. CMake使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%86%85%E9%83%A8%E6%9E%84%E5%BB%BA"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. 内部构建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A4%96%E9%83%A8%E6%9E%84%E5%BB%BA"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. 外部构建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BA%A6%E5%AE%9A%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. 约定目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%89%E8%A3%85%E5%85%B1%E4%BA%AB%E5%BA%93"><span class="toc-number">1.1.4.</span> <span class="toc-text">4. 安装共享库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BD%BF%E7%94%A8%E5%85%B1%E4%BA%AB%E5%BA%93"><span class="toc-number">1.1.5.</span> <span class="toc-text">5. 使用共享库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%AF%AD%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">2. 语法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-PROJECT"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. PROJECT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-SET"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. SET</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-MESSAGE"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. MESSAGE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-ADD-EXECUTABLE"><span class="toc-number">1.2.4.</span> <span class="toc-text">4. ADD_EXECUTABLE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-ADD-SUBDIRECTORY"><span class="toc-number">1.2.5.</span> <span class="toc-text">5. ADD_SUBDIRECTORY</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E6%8C%87%E5%AE%9A%E4%BF%9D%E5%AD%98%E7%9B%AE%E6%A0%87%E4%BA%8C%E8%BF%9B%E5%88%B6%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.2.6.</span> <span class="toc-text">6. 指定保存目标二进制位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-INSTALL"><span class="toc-number">1.2.7.</span> <span class="toc-text">7. INSTALL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E6%B8%85%E7%90%86%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.8.</span> <span class="toc-text">8. 清理工程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-ADD-LIBRARY"><span class="toc-number">1.2.9.</span> <span class="toc-text">9. ADD_LIBRARY</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-SET-TARGET-PROPERTIES"><span class="toc-number">1.2.10.</span> <span class="toc-text">10. SET_TARGET_PROPERTIES</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-INCLUDE-DIRECTORIES"><span class="toc-number">1.2.11.</span> <span class="toc-text">11. INCLUDE_DIRECTORIES</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-LINK-DIRECTORIES"><span class="toc-number">1.2.12.</span> <span class="toc-text">12. LINK_DIRECTORIES</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-TARGET-LINK-LIBRARIES"><span class="toc-number">1.2.13.</span> <span class="toc-text">13. TARGET_LINK_LIBRARIES</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95"><span class="toc-number">1.2.14.</span> <span class="toc-text">**基础语法</span></a></li></ol></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2024 By Just花语</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.12.0"></script><script src="/js/main.js?v=4.12.0"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/click-heart.min.js" async="async" mobile="true"></script><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"></div></div><hr><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.12.0"></script></div></div></body></html>
