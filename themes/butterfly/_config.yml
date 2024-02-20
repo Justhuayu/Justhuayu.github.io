@@ -59,18 +59,17 @@ disable_top_img: false
 
 # The banner image of home page
 index_img: transparent
-# index_img: /img/home_bg.JPG
-
+# index_img: https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png
 
 # If the banner of page not setting, it will show the top_img
 default_top_img:
 
 # The banner image of archive page
-archive_img:
+archive_img: 
 
 # If the banner of tag page not setting, it will show the top_img
 # note: tag page, not tags page (子標籤頁面的 top_img)
-tag_img:
+tag_img: 
 
 # The banner image of tag page
 # format:
@@ -145,7 +144,7 @@ photofigcaption: false
 # copy settings
 # copyright: Add the copyright information after copied content (複製的內容後面加上版權信息)
 copy:
-  enable: true
+  enable: false
   copyright:
     enable: false
     limit_count: 50
@@ -163,7 +162,7 @@ toc:
   scroll_percent: true #是否显示滚动进度百分比
 
 post_copyright:
-  enable: true
+  enable: false
   decode: false
   author_href:
   license: CC BY-NC-SA 4.0
@@ -200,7 +199,7 @@ related_post:
 # 1: The 'next post' will link to old post
 # 2: The 'next post' will link to new post
 # false: disable pagination
-post_pagination: 1
+post_pagination: false
 
 # Displays outdated notice for a post (文章過期提醒)
 noticeOutdate:
@@ -227,7 +226,7 @@ aside:
   enable: true
   hide: false
   button: true
-  mobile: false # display on mobile
+  mobile: true # display on mobile
   position: left # left or right
   display:
     archive: true
@@ -248,34 +247,35 @@ aside:
     enable: true
     limit: 4 # if set 0 will show all
     sort: updated # date or updated
-    sort_order: # Don't modify the setting unless you know how it works
+    sort_order: 3 # Don't modify the setting unless you know how it works
   card_categories:
     enable: true
     limit: 0 # if set 0 will show all
     expand: none # none/true/false
-    sort_order: # Don't modify the setting unless you know how it works
+    sort_order: 1 # Don't modify the setting unless you know how it works
+    # 其它的能通过 sort_order 排序，数字越小，排序越靠前
   card_tags:
     enable: true
     limit: 0 # if set 0 will show all
     color: true
     orderby: random # Order of tags, random/name/length
     order: 1 # Sort of order. 1, asc for ascending; -1, desc for descending
-    sort_order: # Don't modify the setting unless you know how it works
+    sort_order: 2 # Don't modify the setting unless you know how it works
   card_archives:
     enable: true
     type: monthly # yearly or monthly
-    format: MMMM YYYY # eg: YYYY年MM月
+    format: YYYY年MM月 # eg: YYYY年MM月
     order: -1 # Sort of order. 1, asc for ascending; -1, desc for descending
     limit: 8 # if set 0 will show all
-    sort_order: # Don't modify the setting unless you know how it works
+    sort_order: 4 # Don't modify the setting unless you know how it works
   card_webinfo:
     enable: true
     post_count: true
     last_push_date: true
-    sort_order: # Don't modify the setting unless you know how it works
+    sort_order: 5 # Don't modify the setting unless you know how it works
   card_post_series:
     enable: true
-    series_title: false # The title shows the series name
+    series_title: true # The title shows the series name
     orderBy: 'date' # Order by title or date
     order: -1 # Sort of order. 1, asc for ascending; -1, desc for descending
 
@@ -290,8 +290,8 @@ busuanzi:
 # Formal: Month/Day/Year Time or Year/Month/Day Time
 runtimeshow:
   enable: true
-  publish_date:
-  formal:
+  publish_date: 2024/01/20
+  formal: Year/Month/Day
 
 # Aside widget - Newest Comments
 newest_comments:
