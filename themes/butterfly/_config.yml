@@ -251,12 +251,12 @@ aside:
     sort_order: # Don't modify the setting unless you know how it works
   card_categories:
     enable: true
-    limit: 8 # if set 0 will show all
+    limit: 0 # if set 0 will show all
     expand: none # none/true/false
     sort_order: # Don't modify the setting unless you know how it works
   card_tags:
     enable: true
-    limit: 40 # if set 0 will show all
+    limit: 0 # if set 0 will show all
     color: true
     orderby: random # Order of tags, random/name/length
     order: 1 # Sort of order. 1, asc for ascending; -1, desc for descending
