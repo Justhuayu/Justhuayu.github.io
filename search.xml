@@ -4,6 +4,62 @@
   
     
     <entry>
+      <title>AnomalyCLIP：Object-agnostic Prompt Learning for Zero-shot Anomaly Detection</title>
+      <link href="/2024/02/20/%E7%A7%91%E7%A0%94-1-AnomalyCLIP/"/>
+      <url>/2024/02/20/%E7%A7%91%E7%A0%94-1-AnomalyCLIP/</url>
+      
+        <content type="html"><![CDATA[<p>[TOC]</p><h1 id="AnomalyCLIP"><a href="#AnomalyCLIP" class="headerlink" title="AnomalyCLIP"></a>AnomalyCLIP</h1><img src="https://telegraph-image-9wl.pages.dev/file/bde3dbfce428b9d30dc25.png" alt="image-20240220100508474" style="zoom:40%;" /><h2 id="1-问题"><a href="#1-问题" class="headerlink" title="1. 问题"></a>1. 问题</h2><h3 id="1-ZSAD（零样本异常检测）任务大问题"><a href="#1-ZSAD（零样本异常检测）任务大问题" class="headerlink" title="1. ZSAD（零样本异常检测）任务大问题"></a>1. ZSAD（零样本异常检测）任务大问题</h3><p>​需要使用辅助数据训练的检测模型来检测异常，而目标数据集中没有任何训练样本。</p><h3 id="2-CLIP用于异常检测问题"><a href="#2-CLIP用于异常检测问题" class="headerlink" title="2. CLIP用于异常检测问题"></a>2. CLIP用于异常检测问题</h3><p>​CLIP主要针对的是前景对象的类语义，而不是图像中的异常&#x2F;正常，这限制了它们在理解视觉异常&#x2F;正常时的泛化能力，导致ZSAD性能较弱。</p><h3 id="3-之前的文本提示存在问题"><a href="#3-之前的文本提示存在问题" class="headerlink" title="3. 之前的文本提示存在问题"></a>3. 之前的文本提示存在问题</h3><p>​使用手动定义的文本提示或可学习的提示，通常会导致快速嵌入，选择全局特征进行有效的对象语义对齐，未能捕捉到异常，这种异常通常表现为细粒度的局部特征。</p><h2 id="2-创新"><a href="#2-创新" class="headerlink" title="2. 创新"></a>2. 创新</h2><h3 id="1-对象无关文本提示在ZSAD上的有效性"><a href="#1-对象无关文本提示在ZSAD上的有效性" class="headerlink" title="1. 对象无关文本提示在ZSAD上的有效性"></a>1. 对象无关文本提示在ZSAD上的有效性</h3><blockquote><p>​首次揭示了学习正常和异常的&#x3D;&#x3D;对象无关文本提示&#x3D;&#x3D;是一种简单而有效的准确的ZSAD方法，AnomalyCLIP模型&#x3D;&#x3D;允许对象不可知&#x3D;&#x3D;，具有很强的ZSAD性能。</p></blockquote><p>###2. 对象无关提示模版</p><blockquote><p>​定义了一个&#x3D;&#x3D;对象无关的提示模板&#x3D;&#x3D;。</p></blockquote><p>$$<br>g_n &#x3D; [V_1][V_2] \ldots [V_E][\text{object}]<br>$$</p><p>$$<br>g_a &#x3D; [W_1][W_2] \ldots [W_E][\text{damaged}][\text{object}]<br>$$</p><h3 id="3-全局局部异常丢失函数"><a href="#3-全局局部异常丢失函数" class="headerlink" title="3. 全局局部异常丢失函数"></a>3. 全局局部异常丢失函数</h3><blockquote><p>​定义了一个&#x3D;&#x3D;全局局部异常丢失函数&#x3D;&#x3D;。</p></blockquote><h3 id="4-简化了提示符的设计"><a href="#4-简化了提示符的设计" class="headerlink" title="4. 简化了提示符的设计"></a>4. 简化了提示符的设计</h3><blockquote><p>​AnomalyCLIP极大地&#x3D;&#x3D;简化了提示符的设计&#x3D;&#x3D;，&#x3D;&#x3D;不需要修改提示词&#x3D;&#x3D;，即可用于不同领域。</p></blockquote><h2 id="3-方法"><a href="#3-方法" class="headerlink" title="3. 方法"></a>3. 方法</h2><h3 id="1-对象无关的提示词"><a href="#1-对象无关的提示词" class="headerlink" title="1. 对象无关的提示词"></a>1. 对象无关的提示词</h3><blockquote><p>​为区分异常和非异常，设计提示词 [damaged]</p></blockquote><p>​CLIP中常用提示 A photo of A [cls] ，主要&#x3D;&#x3D;关注对象语义&#x3D;&#x3D;。为了支持异常判别文本嵌入的学习，我们的&#x3D;&#x3D;目标是将先验异常语义整合到文本提示模板&#x3D;&#x3D;中。</p><p>​采用文本 damaged [cls] 为&#x3D;&#x3D;覆盖全面异常语义的通用提示模版&#x3D;&#x3D;，引入&#x3D;&#x3D;可学习的文本提示模板进行微调&#x3D;&#x3D;。<br>$$<br>g_n &#x3D; [V_1][V_2] \ldots [V_E][\text{cls}]<br>$$</p><p>$$<br>g_a &#x3D; [W_1][W_2] \ldots [W_E][\text{damaged}][\text{cls}]<br>$$</p><blockquote><p>​为识别一般异常模式，忽略对象，设计提示词 [object]</p></blockquote><p>​对象语义上存在一些实质性的差异，但&#x3D;&#x3D;底层的异常模式可能是相似的&#x3D;&#x3D;。</p><p>​对于ZSAD来说，在对象感知的&#x3D;&#x3D;文本提示模板中包含对象语义通常是不必要的&#x3D;&#x3D;。它甚至会&#x3D;&#x3D;阻碍&#x3D;&#x3D;对学习过程中没有发现的类异常现象的检测。</p><p>​文本提示模板中排除对象语义允许可学习的文本提示模板&#x3D;&#x3D;专注于捕获异常本身的特征，而不是对象&#x3D;&#x3D;。</p><blockquote alt="danger"><p>最终提示次设计如下</p></blockquote><p>$$<br>g_n &#x3D; [V_1][V_2] \ldots [V_E][\text{object}]<br>$$</p><p>$$<br>g_a &#x3D; [W_1][W_2] \ldots [W_E][\text{damaged}][\text{object}]<br>$$</p><h3 id="2-全局局部异常丢失函数"><a href="#2-全局局部异常丢失函数" class="headerlink" title="2. 全局局部异常丢失函数"></a>2. 全局局部异常丢失函数</h3>]]></content>
+      
+      
+      <categories>
+          
+          <category> 科研 </category>
+          
+          <category> 论文笔记 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 科研 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Git</title>
+      <link href="/2024/02/20/C-%E9%9B%B6%E5%A3%B0linux-9-Git/"/>
+      <url>/2024/02/20/C-%E9%9B%B6%E5%A3%B0linux-9-Git/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      <categories>
+          
+          <category> C++ </category>
+          
+          <category> 零声Linux </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> C++ </tag>
+            
+            <tag> 工具 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>install_name_tool 解决链接找不到动态库</title>
       <link href="/2024/02/17/C-%E9%97%AE%E9%A2%98-3-install-name-tool%E8%A7%A3%E5%86%B3%E9%93%BE%E6%8E%A5%E6%89%BE%E4%B8%8D%E5%88%B0%E5%8A%A8%E6%80%81%E5%BA%93/"/>
       <url>/2024/02/17/C-%E9%97%AE%E9%A2%98-3-install-name-tool%E8%A7%A3%E5%86%B3%E9%93%BE%E6%8E%A5%E6%89%BE%E4%B8%8D%E5%88%B0%E5%8A%A8%E6%80%81%E5%BA%93/</url>
@@ -109,9 +165,9 @@
       
         <tags>
             
-            <tag> C++ </tag>
-            
             <tag> 数据结构 </tag>
+            
+            <tag> C++ </tag>
             
         </tags>
       
@@ -138,9 +194,9 @@
       
         <tags>
             
-            <tag> C++ </tag>
-            
             <tag> 数据结构 </tag>
+            
+            <tag> C++ </tag>
             
         </tags>
       
@@ -225,9 +281,9 @@
       
         <tags>
             
-            <tag> C++ </tag>
-            
             <tag> 数据结构 </tag>
+            
+            <tag> C++ </tag>
             
         </tags>
       
@@ -254,9 +310,9 @@
       
         <tags>
             
-            <tag> 数据结构 </tag>
-            
             <tag> labuladong的算法笔记 </tag>
+            
+            <tag> 数据结构 </tag>
             
         </tags>
       
@@ -283,9 +339,9 @@
       
         <tags>
             
-            <tag> C++ </tag>
-            
             <tag> 数据结构 </tag>
+            
+            <tag> C++ </tag>
             
         </tags>
       
