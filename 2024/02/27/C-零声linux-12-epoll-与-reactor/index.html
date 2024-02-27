@@ -1,0 +1,251 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>epoll 与 reactor | Just花语的博客</title><meta name="author" content="Just花语"><meta name="copyright" content="Just花语"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="[TOC] epoll 与 reactor1. epoll1. epoll的数据结构​	epoll 要为两个集合选择数据结构  所有 fd 的总集 就绪 fd 的总集   所有 fd 的总集 —-> ==红黑树==  ​	首先，对于==一个 fd ，其底层对应一个 TCB==，这是典型的 ==">
+<meta property="og:type" content="article">
+<meta property="og:title" content="epoll 与 reactor">
+<meta property="og:url" content="https://justhuayu.github.io/2024/02/27/C-%E9%9B%B6%E5%A3%B0linux-12-epoll-%E4%B8%8E-reactor/index.html">
+<meta property="og:site_name" content="Just花语的博客">
+<meta property="og:description" content="[TOC] epoll 与 reactor1. epoll1. epoll的数据结构​	epoll 要为两个集合选择数据结构  所有 fd 的总集 就绪 fd 的总集   所有 fd 的总集 —-> ==红黑树==  ​	首先，对于==一个 fd ，其底层对应一个 TCB==，这是典型的 ==">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png">
+<meta property="article:published_time" content="2024-02-27T04:40:00.000Z">
+<meta property="article:modified_time" content="2024-02-27T07:13:10.973Z">
+<meta property="article:author" content="Just花语">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png"><link rel="shortcut icon" href="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png"><link rel="canonical" href="https://justhuayu.github.io/2024/02/27/C-%E9%9B%B6%E5%A3%B0linux-12-epoll-%E4%B8%8E-reactor/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=4.12.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'epoll 与 reactor',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-02-27 15:13:10'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 7.1.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">22</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr class="custom-hr"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png')"><nav id="nav"><span id="blog-info"><a href="/" title="Just花语的博客"><span class="site-name">Just花语的博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">epoll 与 reactor</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2024-02-27T04:40:00.000Z" title="发表于 2024-02-27 12:40:00">2024-02-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/">C++</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/%E9%9B%B6%E5%A3%B0Linux/">零声Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="epoll 与 reactor"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><div class="top-img" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png');"></div><article class="post-content" id="article-container"><p>[TOC]</p>
+<h1 id="epoll-与-reactor"><a href="#epoll-与-reactor" class="headerlink" title="epoll 与 reactor"></a>epoll 与 reactor</h1><h2 id="1-epoll"><a href="#1-epoll" class="headerlink" title="1. epoll"></a>1. epoll</h2><h3 id="1-epoll的数据结构"><a href="#1-epoll的数据结构" class="headerlink" title="1. epoll的数据结构"></a>1. epoll的数据结构</h3><p>​	epoll 要为两个集合选择数据结构</p>
+<ol>
+<li>所有 fd 的总集</li>
+<li>就绪 fd 的总集</li>
+</ol>
+<blockquote>
+<p>所有 fd 的总集 —-&gt; ==红黑树==</p>
+</blockquote>
+<p>​	首先，对于==一个 fd ，其底层对应一个 TCB==，这是典型的 ==kv 型==数据结构，那么只能从 hash、b/b+树和红黑树进行选择。</p>
+<ol>
+<li><p>==hash== 查询快，但是我们创建 epoll 时并==不知道究竟需要多大的数组==，如果 hash 不断==扩容成本很高==，且==hash的查询不稳定==。</p>
+</li>
+<li><p>==b/b+树== 是一课多叉树，用于==降低层高来增加查询效率==，适合大量数据查询，主要==用于磁盘索引，不适合内存索引场景==。</p>
+</li>
+<li><p>==红黑树== 一般用于内存索引场景，其==查询速度快== $O(log(n))$，并且==创建 epoll 时只需创建一个红黑树树根==，无需额外空间。</p>
+</li>
+</ol>
+<blockquote>
+<p>就绪 fd 的总集 —-&gt; ==链表==</p>
+</blockquote>
+<p>​	就绪集合==不是以查找为主==的，就绪集合的作用是==将里面的元素拷贝给用户进行处理==，所以集合里的元素没有优先级，那么就可以采用==线性==的数据结构，使用==队列==来存储。</p>
+<blockquote>
+<p>红黑树与就绪队列的==关系==</p>
+</blockquote>
+<p>​	红黑树的结点和就绪队列的结点的==同一个节点==，所谓的加入就绪队列，就是将结点的前后指针联系到一起。所以就绪了不是将红黑树结点delete掉然后加入队列。他们是同一个结点，==不需要delete==。</p>
+<h3 id="2-协议栈触发回调"><a href="#2-协议栈触发回调" class="headerlink" title="2. 协议栈触发回调"></a>2. 协议栈触发回调</h3><blockquote>
+<p>触发时机</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/2dddc31789b4100ddc4dd.jpg" style="zoom:100%;">
+
+<ol>
+<li>三次握手完成之后</li>
+<li>接收数据回复ACK之后</li>
+<li>发送数据收到ACK之后</li>
+<li>接收FIN回复ACK之后 </li>
+<li>接收RST(复位)回复ACK之后</li>
+</ol>
+<blockquote>
+<p>epoll 匹配就绪io</p>
+</blockquote>
+<ol>
+<li>ip头可以解析出源ip，目的ip和协议，从tcp头可以解析出源端口和目的端口，此时五元组就凑齐了。</li>
+<li>socket fd — ==&lt; 源IP地址 , 源端口 , 目的IP地址 , 目的端口 , 协议 &gt;== 一个fd就是一个五元组。</li>
+<li>知道了fd，就能==从红黑树中找到==对应的结点。</li>
+</ol>
+<h3 id="3-epoll-线程锁"><a href="#3-epoll-线程锁" class="headerlink" title="3. epoll 线程锁"></a>3. epoll 线程锁</h3><blockquote>
+<p>epoll 的三个 api</p>
+</blockquote>
+<ol>
+<li><p><code>epoll_create()</code> —-&gt; 创建红黑树的根节点</p>
+</li>
+<li><p><code>epoll_ctl()</code> —-&gt; add 、del、mod 增加、删除、修改结点</p>
+</li>
+<li><p><code>epoll_wait()</code> —-&gt; 把就绪队列的结点copy到用户态放到events里面，跟recv函数很像</p>
+</li>
+</ol>
+<blockquote>
+<p>分析加锁</p>
+</blockquote>
+<ol>
+<li>如果同时调用 <code>epoll_create()</code> ，那就是创建三颗红黑树，没有涉及到资源竞争，没有关系</li>
+<li>如果同时调用 <code>epoll_ctl()</code> ，对==同一颗红黑树进行增删改==，这就涉及到资源竞争需要加锁了，此时我们==对整棵树进行加锁==</li>
+<li>如果同时调用<code>epoll_wait()</code> ，其==同时操作的是就绪队列==，所以需要==对就绪队列进行加锁==。</li>
+</ol>
+<blockquote>
+<p>加锁类型</p>
+</blockquote>
+<ol>
+<li>对于红黑树这种节点比较多的时候，采用==互斥锁来加锁==</li>
+<li>就绪队列就跟生产者消费者一样，结点是从协议栈回调函数来生产的，消费是epoll_wait()来消费。那么对于队列而言，用==自旋锁==（对于队列而言，插入删除比较简单，cpu自旋等待比让出的成本更低，所以用自旋锁）。</li>
+</ol>
+<h3 id="4-ET-与-LT"><a href="#4-ET-与-LT" class="headerlink" title="4. ET 与 LT"></a>4. ET 与 LT</h3><blockquote>
+<p>ET 边沿触发</p>
+</blockquote>
+<ul>
+<li>ET边沿触发，==只触发一次==</li>
+<li>从协议栈检测到接收数据，就调用一次回调，这就是ET，==接收到数据，调用一次回调==</li>
+</ul>
+<blockquote>
+<p>LT 水平触发</p>
+</blockquote>
+<ul>
+<li>LT水平触发，如果==没有读完就一直触发==</li>
+<li>LT水平触发，检测到 ==recvbuf 里面有数据就调用回调==</li>
+</ul>
+<h3 id="5-代码原理"><a href="#5-代码原理" class="headerlink" title="5. 代码原理"></a>5. 代码原理</h3><img src="https://telegraph-image-9wl.pages.dev/file/b24757cd85b00bf9f08bd.jpg" style="zoom:100%;">
+
+<ol>
+<li><code>epoll_create()</code> 创建一个 ==eventpoll== ，里面存储红黑树和就绪链表的==头节点== 。</li>
+<li><code>epoll_ctl()</code> 创建==每个事件==的节点信息 ==epitem== ，里面存储红黑树和就绪链表的==节点==</li>
+<li><code>epoll_wait()</code> 返回==就绪链表==里面的数据。</li>
+</ol>
+<h3 id="6-使用"><a href="#6-使用" class="headerlink" title="6. 使用"></a>6. 使用</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/545309958?utm_id=0">epoll原理：协议栈与epoll通信</a></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C/">网络</a></div><div class="post_share"><div class="social-share" data-image="https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/02/21/C-%E9%9B%B6%E5%A3%B0linux-11-%E7%BD%91%E7%BB%9C-io-%E4%B8%8E-select%EF%BC%8Cpoll%EF%BC%8Cepoll/" title="网络 io 与 select，poll"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/883007a9a06e0155b15a9.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-21</div><div class="title">网络 io 与 select，poll</div></div></a></div><div><a href="/2024/02/15/C-%E9%9B%B6%E5%A3%B0linux-2-B%E6%A0%91/" title="B树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/ef24b06465da1157f2652.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-15</div><div class="title">B树</div></div></a></div><div><a href="/2024/02/06/C-%E9%9B%B6%E5%A3%B0linux-1-1-%E4%BA%8C%E5%8F%89%E6%9F%A5%E6%89%BE%E6%A0%91/" title="红黑树基础 ----> 二叉查找树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/1c883f7f427a1722a25a3.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-06</div><div class="title">红黑树基础 ----&gt; 二叉查找树</div></div></a></div><div><a href="/2024/02/17/C-%E9%9B%B6%E5%A3%B0linux-8-1-CMake/" title="CMake"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/ecd911b3d25ad0d19b329.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-17</div><div class="title">CMake</div></div></a></div><div><a href="/2024/02/15/C-%E9%9B%B6%E5%A3%B0linux-2-1-B-%E6%A0%91/" title="B+树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/911ee69c2f4ba2e15d7cf.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-15</div><div class="title">B+树</div></div></a></div><div><a href="/2024/01/27/C-%E9%9B%B6%E5%A3%B0linux-1-%E7%BA%A2%E9%BB%91%E6%A0%91/" title="红黑树"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/4259e776135f8cd61103c.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-27</div><div class="title">红黑树</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#epoll-%E4%B8%8E-reactor"><span class="toc-number">1.</span> <span class="toc-text">epoll 与 reactor</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-epoll"><span class="toc-number">1.1.</span> <span class="toc-text">1. epoll</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-epoll%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. epoll的数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8D%8F%E8%AE%AE%E6%A0%88%E8%A7%A6%E5%8F%91%E5%9B%9E%E8%B0%83"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. 协议栈触发回调</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-epoll-%E7%BA%BF%E7%A8%8B%E9%94%81"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. epoll 线程锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-ET-%E4%B8%8E-LT"><span class="toc-number">1.1.4.</span> <span class="toc-text">4. ET 与 LT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%BB%A3%E7%A0%81%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.5.</span> <span class="toc-text">5. 代码原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E4%BD%BF%E7%94%A8"><span class="toc-number">1.1.6.</span> <span class="toc-text">6. 使用</span></a></li></ol></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2024 By Just花语</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.12.0"></script><script src="/js/main.js?v=4.12.0"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/click-heart.min.js" async="async" mobile="true"></script><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"></div></div><hr><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.12.0"></script></div></div></body></html>
