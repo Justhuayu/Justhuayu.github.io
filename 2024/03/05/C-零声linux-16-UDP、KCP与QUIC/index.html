@@ -1,0 +1,295 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>UDP、KCP与QUIC | Just花语的博客</title><meta name="author" content="Just花语"><meta name="copyright" content="Just花语"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="UDP、KCP与QUIC1. 网络基础1. 如何做到可靠性传输 ACK确认 重传机制 序号机制 重排机制 窗口机制，流量控制  2. TCP与UDP TCP与UDP特点     TCP与UDP报文格式    3. 自动重传协议ARQ（Automatic Repeat-reQuest） 停止等待 回退n帧 选择重传   停止等待     回退n帧  ​	为了克服停等协议长时间等待ACK的缺陷，连续A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UDP、KCP与QUIC">
+<meta property="og:url" content="https://justhuayu.github.io/2024/03/05/C-%E9%9B%B6%E5%A3%B0linux-16-UDP%E3%80%81KCP%E4%B8%8EQUIC/index.html">
+<meta property="og:site_name" content="Just花语的博客">
+<meta property="og:description" content="UDP、KCP与QUIC1. 网络基础1. 如何做到可靠性传输 ACK确认 重传机制 序号机制 重排机制 窗口机制，流量控制  2. TCP与UDP TCP与UDP特点     TCP与UDP报文格式    3. 自动重传协议ARQ（Automatic Repeat-reQuest） 停止等待 回退n帧 选择重传   停止等待     回退n帧  ​	为了克服停等协议长时间等待ACK的缺陷，连续A">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://telegraph-image-9wl.pages.dev/file/ab028f619443fff3d5404.jpg">
+<meta property="article:published_time" content="2024-03-05T02:04:00.000Z">
+<meta property="article:modified_time" content="2024-03-05T08:36:38.214Z">
+<meta property="article:author" content="Just花语">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://telegraph-image-9wl.pages.dev/file/ab028f619443fff3d5404.jpg"><link rel="shortcut icon" href="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png"><link rel="canonical" href="https://justhuayu.github.io/2024/03/05/C-%E9%9B%B6%E5%A3%B0linux-16-UDP%E3%80%81KCP%E4%B8%8EQUIC/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=4.12.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'UDP、KCP与QUIC',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-03-05 16:36:38'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 7.1.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr class="custom-hr"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/ab028f619443fff3d5404.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Just花语的博客"><span class="site-name">Just花语的博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">UDP、KCP与QUIC</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2024-03-05T02:04:00.000Z" title="发表于 2024-03-05 10:04:00">2024-03-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/">C++</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/%E9%9B%B6%E5%A3%B0Linux/">零声Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">484</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>1分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="UDP、KCP与QUIC"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><div class="top-img" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/ab028f619443fff3d5404.jpg');"></div><article class="post-content" id="article-container"><h1 id="UDP、KCP与QUIC"><a href="#UDP、KCP与QUIC" class="headerlink" title="UDP、KCP与QUIC"></a>UDP、KCP与QUIC</h1><h2 id="1-网络基础"><a href="#1-网络基础" class="headerlink" title="1. 网络基础"></a>1. 网络基础</h2><h3 id="1-如何做到可靠性传输"><a href="#1-如何做到可靠性传输" class="headerlink" title="1. 如何做到可靠性传输"></a>1. 如何做到可靠性传输</h3><ol>
+<li>ACK确认</li>
+<li>重传机制</li>
+<li>序号机制</li>
+<li>重排机制</li>
+<li>窗口机制，流量控制</li>
+</ol>
+<h3 id="2-TCP与UDP"><a href="#2-TCP与UDP" class="headerlink" title="2. TCP与UDP"></a>2. TCP与UDP</h3><blockquote>
+<p>TCP与UDP特点</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/a793e407e2f6800f7d0fe.png" alt="image-20240305101502045" style="zoom:40%;">
+
+<blockquote>
+<p>TCP与UDP报文格式</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/ba762e574ef80775f6c98.png" alt="image-20240305101625009" style="zoom:50%;">
+
+<h3 id="3-自动重传协议ARQ（Automatic-Repeat-reQuest）"><a href="#3-自动重传协议ARQ（Automatic-Repeat-reQuest）" class="headerlink" title="3. 自动重传协议ARQ（Automatic Repeat-reQuest）"></a>3. 自动重传协议ARQ（Automatic Repeat-reQuest）</h3><ol>
+<li>停止等待</li>
+<li>回退n帧</li>
+<li>选择重传</li>
+</ol>
+<blockquote>
+<p>停止等待</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/ccd9a60835c9bf3974294.png" alt="image-20240305102202083" style="zoom:33%;">
+
+<blockquote>
+<p>回退n帧</p>
+</blockquote>
+<p>​	为了克服停等协议长时间等待ACK的缺陷，连续ARQ协议会连续发送一组数据包，然后再等待这些数据包的ACK。</p>
+<img src="https://telegraph-image-9wl.pages.dev/file/1b89ad3a5fbf5387586e1.png" alt="image-20240305102252303" style="zoom:40%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/ab4086dd648ba8b22d3a0.png" alt="image-20240305102330403" style="zoom:33%;">
+
+<blockquote>
+<p>选择重传</p>
+</blockquote>
+<p>​	虽然GBN改善了停等协议中时间等待较长的缺陷，但它依旧存在着性能问题。特别是当窗口长度很大的时候，会使效率大大降低。而SR协议通过让发送方仅重传在接收方丢失或损坏了的分组，从而避免了不必要的重传，提高了效率。</p>
+<img src="https://telegraph-image-9wl.pages.dev/file/4041ae15540984c89a80e.png" alt="image-20240305102452387" style="zoom:43%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/cbf7759019f9cad7e754d.png" alt="image-20240305102509250" style="zoom:33%;">
+
+<h3 id="4-RTT-和-RTO"><a href="#4-RTT-和-RTO" class="headerlink" title="4. RTT 和 RTO"></a>4. RTT 和 RTO</h3><blockquote>
+<p>RTO（RetransmissionTimeOut）即重传超时时间。</p>
+</blockquote>
+<blockquote>
+<p>RTT(Round-TripTime)：往返时延。</p>
+</blockquote>
+<p>​	表示从发送端发送数据开始，到发送端收到来自接收端的确认（接收端收到数据后便立即发送确认），总共经历的时延。</p>
+<ol>
+<li>链路的传播时间（propagationdelay）</li>
+<li>末端系统的处理时间</li>
+<li>路由器缓存中的排队和处理时间（queuingdelay）</li>
+</ol>
+<p>​	前两个部分的值对于一个TCP连接相对固定，路由器缓存中的排队和处理时间会随着整个网络拥塞程度的变化而变化。所以==RTT的变化==在一定程度上反应网络的拥塞程度。</p>
+<h3 id="5-流量控制"><a href="#5-流量控制" class="headerlink" title="5. 流量控制"></a>5. 流量控制</h3><img src="https://telegraph-image-9wl.pages.dev/file/4b28d3c5f304b53d69a78.png" alt="image-20240305103001651" style="zoom:33%;">
+
+<blockquote>
+<p>如何控制？</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/b02ef0b4b4cdb2af62cb0.png" alt="image-20240305103436157" style="zoom:33%;">
+
+<blockquote>
+<p>发送方何时发送数据？</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/b29684182c41769a98be2.png" alt="image-20240305103517527" style="zoom:40%;">
+
+<blockquote>
+<p>总结</p>
+</blockquote>
+<img src="https://telegraph-image-9wl.pages.dev/file/ce5bd7711834b72d98ec9.png" alt="image-20240305103537832" style="zoom:40%;">
+
+<h3 id="6-拥塞控制"><a href="#6-拥塞控制" class="headerlink" title="6. 拥塞控制"></a>6. 拥塞控制</h3><img src="https://telegraph-image-9wl.pages.dev/file/9f18e1393e9423e6775c2.png" alt="image-20240305103632185" style="zoom:33%;">
+
+<h3 id="7-UDP-网络编程"><a href="#7-UDP-网络编程" class="headerlink" title="7. UDP 网络编程"></a>7. UDP 网络编程</h3><img src="https://telegraph-image-9wl.pages.dev/file/ff8b288aebfb15a58758c.png" alt="image-20240305104253540" style="zoom:83%;">
+
+<h2 id="2-KCP快速可靠传输协议"><a href="#2-KCP快速可靠传输协议" class="headerlink" title="2. KCP快速可靠传输协议"></a>2. KCP快速可靠传输协议</h2><blockquote>
+<p>kcp 可以看做应用层协议，底层采用 udp 传输</p>
+</blockquote>
+<h3 id="1-优势"><a href="#1-优势" class="headerlink" title="1. 优势"></a>1. 优势</h3><img src="https://telegraph-image-9wl.pages.dev/file/54464194b08a58f128335.png" alt="image-20240305111737678" style="zoom:33%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/0e75886926458164f152e.png" alt="image-20240305111754986" style="zoom:33%;">
+
+<h3 id="2-kcp协议头"><a href="#2-kcp协议头" class="headerlink" title="2. kcp协议头"></a>2. kcp协议头</h3><img src="https://telegraph-image-9wl.pages.dev/file/39e4d89b0ad2e162fc927.png" alt="image-20240305122106642" style="zoom:35%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/398f56978e617d3ace085.png" alt="image-20240305122419300" style="zoom:35%;">
+
+<h3 id="3-kcp-发送数据"><a href="#3-kcp-发送数据" class="headerlink" title="3. kcp 发送数据"></a>3. kcp 发送数据</h3><img src="https://telegraph-image-9wl.pages.dev/file/8181a08e3e382c18de1a0.png" alt="image-20240305123149287" style="zoom:90%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/2ab6383dbc4f12ec9cafe.png" alt="image-20240305123215527" style="zoom:50%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/26669535ad18d97ec691c.png" alt="image-20240305123239026" style="zoom:90%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/6410dbbb7287715327f77.png" alt="image-20240305123511842" style="zoom:35%;">
+
+<h3 id="4-kcp-接受数据"><a href="#4-kcp-接受数据" class="headerlink" title="4. kcp 接受数据"></a>4. kcp 接受数据</h3><img src="https://telegraph-image-9wl.pages.dev/file/2b9c6c3613dd3f7745258.png" alt="image-20240305124506349" style="zoom:90%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/2da4f813f62bcd0712dc7.png" alt="image-20240305124630859" style="zoom:37%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/bd37b6bdee97b1b48395b.png" alt="image-20240305124738972" style="zoom:33%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/2c0ff121f268eb2e0d146.png" alt="image-20240305124820947" style="zoom:33%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/09a58bad6736b5885aaf2.png" alt="image-20240305124850915" style="zoom:93%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/9a2564f621f0c0ce45f75.png" alt="image-20240305124917844" style="zoom:37%;">
+
+<h3 id="5-其他"><a href="#5-其他" class="headerlink" title="5. 其他"></a>5. 其他</h3><img src="https://telegraph-image-9wl.pages.dev/file/141d5ea84d7b287b5c448.png" alt="07081af5a570153004a55b3eaf7a804c" style="zoom:80%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/a5ea3115bf56b397c90e8.png" alt="image-20240305125247636" style="zoom:33%;">
+
+<img src="https://telegraph-image-9wl.pages.dev/file/4dc5e6eeb575684435586.png" alt="image-20240305125305919" style="zoom:33%;">
+
+<h3 id="6-使用"><a href="#6-使用" class="headerlink" title="6. 使用"></a>6. 使用</h3><img src="https://telegraph-image-9wl.pages.dev/file/babb1d59f85fb5f902821.jpg" alt="v2-4d501634718ef8a880745546ca470b84_r" style="zoom:93%;">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C/">网络</a></div><div class="post_share"><div class="social-share" data-image="https://telegraph-image-9wl.pages.dev/file/ab028f619443fff3d5404.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/02/21/C-%E9%9B%B6%E5%A3%B0linux-11-%E7%BD%91%E7%BB%9C-io-%E4%B8%8E-select%EF%BC%8Cpoll%EF%BC%8Cepoll/" title="网络 io 与 select，poll"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/883007a9a06e0155b15a9.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-21</div><div class="title">网络 io 与 select，poll</div></div></a></div><div><a href="/2024/02/27/C-%E9%9B%B6%E5%A3%B0linux-12-epoll-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" title="epoll 系统调用"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-27</div><div class="title">epoll 系统调用</div></div></a></div><div><a href="/2024/03/02/C-%E9%9B%B6%E5%A3%B0linux-13-http%E6%9C%8D%E5%8A%A1%E5%99%A8/" title="http 服务器"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/141ba8e44798426fb054e.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-02</div><div class="title">http 服务器</div></div></a></div><div><a href="/2024/03/02/C-%E9%9B%B6%E5%A3%B0linux-14-reactor%E5%8F%8D%E5%BA%94%E5%A0%86/" title="reactor反应堆"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/3b49e61cd3af580e810df.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-02</div><div class="title">reactor反应堆</div></div></a></div><div><a href="/2024/03/04/C-%E9%9B%B6%E5%A3%B0linux-15-PosixAPI%E4%B8%8E%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE%E6%A0%88/" title="PosixAPI与网络协议栈"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/2c083c2ef5f103cfa9849.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-04</div><div class="title">PosixAPI与网络协议栈</div></div></a></div><div><a href="/2024/03/05/C-%E9%9B%B6%E5%A3%B0linux-17-%E5%8D%8F%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/" title="协程设计原理"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/07ba302c03e658aa11998.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-05</div><div class="title">协程设计原理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#UDP%E3%80%81KCP%E4%B8%8EQUIC"><span class="toc-number">1.</span> <span class="toc-text">UDP、KCP与QUIC</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%BD%91%E7%BB%9C%E5%9F%BA%E7%A1%80"><span class="toc-number">1.1.</span> <span class="toc-text">1. 网络基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%A6%82%E4%BD%95%E5%81%9A%E5%88%B0%E5%8F%AF%E9%9D%A0%E6%80%A7%E4%BC%A0%E8%BE%93"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. 如何做到可靠性传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-TCP%E4%B8%8EUDP"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. TCP与UDP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%87%AA%E5%8A%A8%E9%87%8D%E4%BC%A0%E5%8D%8F%E8%AE%AEARQ%EF%BC%88Automatic-Repeat-reQuest%EF%BC%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. 自动重传协议ARQ（Automatic Repeat-reQuest）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-RTT-%E5%92%8C-RTO"><span class="toc-number">1.1.4.</span> <span class="toc-text">4. RTT 和 RTO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="toc-number">1.1.5.</span> <span class="toc-text">5. 流量控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6"><span class="toc-number">1.1.6.</span> <span class="toc-text">6. 拥塞控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-UDP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B"><span class="toc-number">1.1.7.</span> <span class="toc-text">7. UDP 网络编程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-KCP%E5%BF%AB%E9%80%9F%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.</span> <span class="toc-text">2. KCP快速可靠传输协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BC%98%E5%8A%BF"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-kcp%E5%8D%8F%E8%AE%AE%E5%A4%B4"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. kcp协议头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-kcp-%E5%8F%91%E9%80%81%E6%95%B0%E6%8D%AE"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. kcp 发送数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-kcp-%E6%8E%A5%E5%8F%97%E6%95%B0%E6%8D%AE"><span class="toc-number">1.2.4.</span> <span class="toc-text">4. kcp 接受数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%85%B6%E4%BB%96"><span class="toc-number">1.2.5.</span> <span class="toc-text">5. 其他</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.6.</span> <span class="toc-text">6. 使用</span></a></li></ol></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2024 By Just花语</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.12.0"></script><script src="/js/main.js?v=4.12.0"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/click-heart.min.js" async="async" mobile="true"></script><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"></div></div><hr><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.12.0"></script></div></div></body></html>
