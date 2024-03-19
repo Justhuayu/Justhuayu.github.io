@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>io_uring | Just花语的博客</title><meta name="author" content="Just花语"><meta name="copyright" content="Just花语"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="[TOC] io_uring1. 原理1. 异步的读 内存中设计一个==ring，存放读队列== 内核==遍历读队列==，依次执行读 内核执行后的读，放入==另一个ring==中，用于返回   2. 使用条件 内核版本 kernel >=5.10 （uname -">
+<meta property="og:type" content="article">
+<meta property="og:title" content="io_uring">
+<meta property="og:url" content="https://justhuayu.github.io/2024/03/17/C-%E9%9B%B6%E5%A3%B0linux-20-io-uring/index.html">
+<meta property="og:site_name" content="Just花语的博客">
+<meta property="og:description" content="[TOC] io_uring1. 原理1. 异步的读 内存中设计一个==ring，存放读队列== 内核==遍历读队列==，依次执行读 内核执行后的读，放入==另一个ring==中，用于返回   2. 使用条件 内核版本 kernel >=5.10 （uname -">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://telegraph-image-9wl.pages.dev/file/909df8ddf18e2102f454c.jpg">
+<meta property="article:published_time" content="2024-03-17T13:00:00.000Z">
+<meta property="article:modified_time" content="2024-03-19T00:48:50.759Z">
+<meta property="article:author" content="Just花语">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://telegraph-image-9wl.pages.dev/file/909df8ddf18e2102f454c.jpg"><link rel="shortcut icon" href="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png"><link rel="canonical" href="https://justhuayu.github.io/2024/03/17/C-%E9%9B%B6%E5%A3%B0linux-20-io-uring/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css?v=4.12.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'io_uring',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-03-19 08:48:50'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 7.1.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://telegraph-image-9wl.pages.dev/file/3dff73595485fb9078401.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr class="custom-hr"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/909df8ddf18e2102f454c.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Just花语的博客"><span class="site-name">Just花语的博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">io_uring</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2024-03-17T13:00:00.000Z" title="发表于 2024-03-17 21:00:00">2024-03-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/">C++</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C/%E9%9B%B6%E5%A3%B0Linux/">零声Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="io_uring"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><div class="top-img" style="background-image: url('https://telegraph-image-9wl.pages.dev/file/909df8ddf18e2102f454c.jpg');"></div><article class="post-content" id="article-container"><p>[TOC]</p>
+<h1 id="io-uring"><a href="#io-uring" class="headerlink" title="io_uring"></a>io_uring</h1><h2 id="1-原理"><a href="#1-原理" class="headerlink" title="1. 原理"></a>1. 原理</h2><h3 id="1-异步的读"><a href="#1-异步的读" class="headerlink" title="1. 异步的读"></a>1. 异步的读</h3><ol>
+<li>内存中设计一个==ring，存放读队列==</li>
+<li>内核==遍历读队列==，依次执行读</li>
+<li>内核执行后的读，放入==另一个ring==中，用于返回</li>
+</ol>
+<p><img src="https://telegraph-image-9wl.pages.dev/file/652277bc8e4a00b2113f2.png" alt="image-20240317210903371"></p>
+<h3 id="2-使用条件"><a href="#2-使用条件" class="headerlink" title="2. 使用条件"></a>2. 使用条件</h3><ol>
+<li><p>内核版本 kernel &gt;=5.10 （<code>uname -a</code>）</p>
+</li>
+<li><p>安装库==liburing==，该库依赖于</p>
+<p> <code>io_uring_setup</code> <code>io_uring_register</code> <code>io_uring_enter</code></p>
+<p>这三个系统调用 （5.10后才有）</p>
+</li>
+</ol>
+<h3 id="3-安装-liburing"><a href="#3-安装-liburing" class="headerlink" title="3. 安装 liburing"></a>3. 安装 liburing</h3><ol>
+<li><p>从github clone 项目</p>
+<p> <code>git clone https://github.com/axboe/liburing.git</code></p>
+</li>
+<li><p><code>./configure</code></p>
+</li>
+<li><p><code>make</code></p>
+</li>
+<li><p><code>sudo make install</code></p>
+</li>
+</ol>
+<h3 id="4-io-uring-的性能"><a href="#4-io-uring-的性能" class="headerlink" title="4. io_uring 的性能"></a>4. io_uring 的性能</h3><blockquote>
+<p>测试网络echo工具：rust_echo_bench</p>
+</blockquote>
+<p>​	使用命令：<code>cargo run --release -- --address "127.0.0.1:9999" --number 1000 --duration 20 --length 512</code></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/haraldh/rust_echo_bench">github</a></p>
+<ol>
+<li>io_uring性能</li>
+</ol>
+<img src="https://telegraph-image-9wl.pages.dev/file/ff23e0319c9eb45a820ab.png" alt="image-20240318204405512" style="zoom:44%;">
+
+<ol start="2">
+<li>epoll性能</li>
+</ol>
+<img src="https://telegraph-image-9wl.pages.dev/file/3316db6f8f8e4ffe8f0a1.png" alt="image-20240318204348412" style="zoom:50%;">
+
+<blockquote>
+<p>测试文件io速率iops工具：fio</p>
+</blockquote>
+<p>​	使用命令：<code>fio --name=lk --ioengine=psync --iodepth=1 --rw=randread --bs=4k --numjobs=1 --size=10G --runtime=20 --filename=./fiotestfile</code></p>
+<ol>
+<li><p><code>--ioengine</code>参数为 ==psync== 或 ==io_uring==（io_uring的<code>--iodepth</code>要设置为128）</p>
+</li>
+<li><p><code>--rw</code>参数为 ==randread== 或 ==randwrite==</p>
+</li>
+<li><p>读 io_uring ==&gt;== psync，写两者==差不多==</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center">—-</th>
+<th>读–IOPS(BW)</th>
+<th align="center">写–IOPS(BW)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">psync</td>
+<td>8411(34.5MB/s)</td>
+<td align="center">66.3k(272MB/s)</td>
+</tr>
+<tr>
+<td align="center">io_uring</td>
+<td>256k(1050MB/s)</td>
+<td align="center">57.6k(236MB/s)</td>
+</tr>
+</tbody></table>
+<p><a target="_blank" rel="noopener" href="https://github.com/axboe/fio">github</a></p>
+<h2 id="2-代码"><a href="#2-代码" class="headerlink" title="2. 代码"></a>2. 代码</h2><h3 id="1-liburing进行网络io"><a href="#1-liburing进行网络io" class="headerlink" title="1. liburing进行网络io"></a>1. liburing进行网络io</h3><ol>
+<li><p>初始化server。</p>
+</li>
+<li><p>定义结构体</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_conninfo</span>{</span><br><span class="line">    <span class="type">int</span> connfd;</span><br><span class="line">    <span class="type">int</span> event;</span><br><span class="line">}conninfo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">enum</span>{</span><br><span class="line">    EVENT_ACCEPT = <span class="number">0</span>,</span><br><span class="line">    EVENT_READ,</span><br><span class="line">    EVENT_WRITE</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>初始化ring</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">io_uring_params</span> params;</span><br><span class="line"><span class="built_in">memset</span>(&amp;params,<span class="number">0</span>,<span class="built_in">sizeof</span>(params));</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">io_uring</span> ring;</span><br><span class="line"><span class="built_in">io_uring_queue_init_params</span>(ENTRIES_LENGTH,&amp;ring,&amp;params);</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>向sqe中设置accept事件</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">set_uring_accept</span><span class="params">(<span class="keyword">struct</span> io_uring *ring,<span class="type">int</span> sockfd,</span></span></span><br><span class="line"><span class="params"><span class="function">					<span class="keyword">struct</span> sockaddr *clientAddr,</span></span></span><br><span class="line"><span class="params"><span class="function">					<span class="type">socklen_t</span> *clientLen)</span></span>{</span><br><span class="line">    <span class="comment">//1. 从ring获取sqe</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">io_uring_sqe</span> *sqe = <span class="built_in">io_uring_get_sqe</span>(ring);</span><br><span class="line">    <span class="built_in">memset</span>(&amp;clientAddr,<span class="number">0</span>,<span class="built_in">sizeof</span> (clientAddr));</span><br><span class="line">    <span class="comment">//2. 设置accept请假，到sqe提交队列中</span></span><br><span class="line">    <span class="built_in">io_uring_prep_accept</span>(sq,sockfd,clientAddr,clientLen,<span class="number">0</span>);</span><br><span class="line">    conninfo info_accept = {</span><br><span class="line">            .connfd = sockfd,</span><br><span class="line">            .event = EVENT_ACCEPT,</span><br><span class="line">    };</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;sqe-&gt;user_data,&amp;info_accept,<span class="built_in">sizeof</span> (conninfo));</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">sockaddr_in</span> clientAddr;</span><br><span class="line"><span class="type">ssize_t</span> clientLen = <span class="built_in">sizeof</span> (clientAddr);</span><br><span class="line"><span class="built_in">set_uring_accept</span>(&amp;ring,sockfd,(<span class="keyword">struct</span> sockaddr*)&amp;clientAddr,(<span class="type">socklen_t</span> *)&amp;clientLen);</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>循环</p>
+<ol>
+<li><p>将ring中sqe队列提交到内核中处理</p>
+<p><code>io_uring_submit(&amp;ring);</code></p>
+</li>
+<li><p>等待ring中响应</p>
+</li>
+</ol>
+   <figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">io_uring_cqe</span> *cqe;</span><br><span class="line"><span class="comment">//这里cqe表示cq中头，即响应的第一个节点</span></span><br><span class="line"><span class="comment">//阻塞在这里，知道cqe中有数据</span></span><br><span class="line"><span class="built_in">io_uring_wait_cqe</span>(&amp;ring,&amp;cqe);</span><br></pre></td></tr></tbody></table></figure>
+
+<ol start="3">
+<li><p>获取响应事件</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">io_uring_cqe</span> *cqes[<span class="number">10</span>];</span><br><span class="line"><span class="type">int</span> cqecount = <span class="built_in">io_uring_peek_batch_cqe</span>(&amp;ring,cqes,<span class="number">10</span>);</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>遍历响应的事件</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;cqecount;i++){</span><br><span class="line">    cqe = cqes[i];</span><br><span class="line">    conninfo ci;</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;ci,&amp;cqe-&gt;user_data,<span class="built_in">sizeof</span> (ci));</span><br><span class="line">    <span class="keyword">if</span>(ci.event == EVENT_ACCEPT){</span><br><span class="line">        <span class="type">int</span> connfd = cqe-&gt;res;</span><br><span class="line">        <span class="keyword">if</span>(connfd &lt;= <span class="number">0</span>) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"accept: %d\n"</span>,ci.connfd);</span><br><span class="line">        <span class="built_in">set_uring_accept</span>(&amp;ring,sockfd,(<span class="keyword">struct</span> sockaddr*)&amp;clientAddr,(<span class="type">socklen_t</span> *)&amp;clientLen);</span><br><span class="line">        <span class="built_in">set_uring_recv</span>(&amp;ring,connfd,buffer,<span class="number">1024</span>);</span><br><span class="line">    }<span class="keyword">else</span> <span class="keyword">if</span>(ci.event == EVENT_READ){</span><br><span class="line">        <span class="keyword">if</span>(cqe-&gt;res == <span class="number">0</span>) {</span><br><span class="line">            <span class="built_in">close</span>(ci.connfd);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        }<span class="keyword">else</span> <span class="keyword">if</span>(cqe-&gt;res &lt;<span class="number">0</span>) {</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        }<span class="keyword">else</span>{</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"recv:%s ,%d\n"</span>,buffer,ci.connfd);</span><br><span class="line">            <span class="built_in">memset</span>(buffer,<span class="number">0</span>,<span class="number">1024</span>);</span><br><span class="line">            <span class="built_in">set_uring_recv</span>(&amp;ring,ci.connfd,</span><br><span class="line">                          buffer,<span class="number">1024</span>);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>清空当前事件</p>
+<p><code>io_uring_cq_advance(&amp;ring,cqecount);</code></p>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="2-readv"><a href="#2-readv" class="headerlink" title="2. readv"></a>2. readv</h3><h4 id="1-作用"><a href="#1-作用" class="headerlink" title="1. 作用"></a>1. 作用</h4><ol>
+<li>读多块不连续的内存</li>
+<li>一块大内存，无法一次读完</li>
+<li>tcp头的多次读写</li>
+</ol>
+<h4 id="2-代码-1"><a href="#2-代码-1" class="headerlink" title="2. 代码"></a>2. 代码</h4><figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span>      <span class="comment">// 标准输入输出库</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span>      <span class="comment">// 文件控制库，包含文件打开函数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span>     <span class="comment">// POSIX 系统服务库，包含 readv 函数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/uio.h&gt;</span>    <span class="comment">// I/O 向量库，包含 struct iovec 结构体的定义</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>{</span><br><span class="line">    <span class="type">int</span> fd = <span class="built_in">open</span>(<span class="string">"./z5_io_uring/5_2_readv.cpp"</span>,O_RDONLY); <span class="comment">// 打开文件，只读模式</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">iovec</span> iov[<span class="number">3</span>];   <span class="comment">// 定义一个 iovec 结构体数组，用于指定多个缓冲区</span></span><br><span class="line">    <span class="type">char</span> buf1[<span class="number">33</span>] = {<span class="number">0</span>};   <span class="comment">// 定义第一个缓冲区</span></span><br><span class="line">    <span class="type">char</span> buf2[<span class="number">65</span>] = {<span class="number">0</span>};   <span class="comment">// 定义第二个缓冲区</span></span><br><span class="line">    <span class="type">char</span> buf3[<span class="number">129</span>] = {<span class="number">0</span>};  <span class="comment">// 定义第三个缓冲区</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将缓冲区地址和长度分别指定给 iov 数组的各个元素</span></span><br><span class="line">    iov[<span class="number">0</span>].iov_base = buf1;         <span class="comment">// 第一个缓冲区的地址</span></span><br><span class="line">    iov[<span class="number">0</span>].iov_len = <span class="built_in">sizeof</span> (buf1) - <span class="number">1</span>; <span class="comment">// 第一个缓冲区的长度</span></span><br><span class="line"></span><br><span class="line">    iov[<span class="number">1</span>].iov_base = buf2;         <span class="comment">// 第二个缓冲区的地址</span></span><br><span class="line">    iov[<span class="number">1</span>].iov_len = <span class="built_in">sizeof</span> (buf2) - <span class="number">1</span>; <span class="comment">// 第二个缓冲区的长度</span></span><br><span class="line"></span><br><span class="line">    iov[<span class="number">2</span>].iov_base = buf3;         <span class="comment">// 第三个缓冲区的地址</span></span><br><span class="line">    iov[<span class="number">2</span>].iov_len = <span class="built_in">sizeof</span> (buf3) - <span class="number">1</span>; <span class="comment">// 第三个缓冲区的长度</span></span><br><span class="line"></span><br><span class="line">    <span class="type">ssize_t</span> nread = <span class="built_in">readv</span>(fd,iov,<span class="number">3</span>);   <span class="comment">// 使用 readv 函数从文件中读取数据到多个缓冲区中</span></span><br><span class="line">    <span class="keyword">if</span>(nread == <span class="number">-1</span>){                    <span class="comment">// 检查读取是否成功</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;                      <span class="comment">// 如果读取失败，返回错误码</span></span><br><span class="line">    }</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"read %ld bytes : \n"</span>,nread);  <span class="comment">// 输出读取的字节数</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"buf1: %s \n"</span>,buf1);            <span class="comment">// 输出第一个缓冲区的内容</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"buf2: %s \n"</span>,buf2);            <span class="comment">// 输出第二个缓冲区的内容</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"buf3: %s \n"</span>,buf3);            <span class="comment">// 输出第三个缓冲区的内容</span></span><br><span class="line">    <span class="built_in">close</span>(fd);                              <span class="comment">// 关闭文件</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;                               <span class="comment">// 返回程序正常退出</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C/">网络</a></div><div class="post_share"><div class="social-share" data-image="https://telegraph-image-9wl.pages.dev/file/909df8ddf18e2102f454c.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/02/21/C-%E9%9B%B6%E5%A3%B0linux-11-%E7%BD%91%E7%BB%9C-io-%E4%B8%8E-select%EF%BC%8Cpoll%EF%BC%8Cepoll/" title="网络 io 与 select，poll"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/883007a9a06e0155b15a9.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-21</div><div class="title">网络 io 与 select，poll</div></div></a></div><div><a href="/2024/02/27/C-%E9%9B%B6%E5%A3%B0linux-12-epoll-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" title="epoll 系统调用"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/78de4c1779029fc98c459.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-27</div><div class="title">epoll 系统调用</div></div></a></div><div><a href="/2024/03/02/C-%E9%9B%B6%E5%A3%B0linux-14-reactor%E5%8F%8D%E5%BA%94%E5%A0%86/" title="reactor反应堆"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/3b49e61cd3af580e810df.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-02</div><div class="title">reactor反应堆</div></div></a></div><div><a href="/2024/03/04/C-%E9%9B%B6%E5%A3%B0linux-15-PosixAPI%E4%B8%8E%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE%E6%A0%88/" title="PosixAPI与网络协议栈"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/2c083c2ef5f103cfa9849.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-04</div><div class="title">PosixAPI与网络协议栈</div></div></a></div><div><a href="/2024/03/05/C-%E9%9B%B6%E5%A3%B0linux-17-%E5%8D%8F%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/" title="协程设计原理"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/07ba302c03e658aa11998.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-05</div><div class="title">协程设计原理</div></div></a></div><div><a href="/2024/03/05/C-%E9%9B%B6%E5%A3%B0linux-16-UDP%E3%80%81KCP%E4%B8%8EQUIC/" title="UDP、KCP与QUIC"><img class="cover" src="https://telegraph-image-9wl.pages.dev/file/ab028f619443fff3d5404.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-05</div><div class="title">UDP、KCP与QUIC</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#io-uring"><span class="toc-number">1.</span> <span class="toc-text">io_uring</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">1. 原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BC%82%E6%AD%A5%E7%9A%84%E8%AF%BB"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. 异步的读</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%BF%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. 使用条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AE%89%E8%A3%85-liburing"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. 安装 liburing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-io-uring-%E7%9A%84%E6%80%A7%E8%83%BD"><span class="toc-number">1.1.4.</span> <span class="toc-text">4. io_uring 的性能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BB%A3%E7%A0%81"><span class="toc-number">1.2.</span> <span class="toc-text">2. 代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-liburing%E8%BF%9B%E8%A1%8C%E7%BD%91%E7%BB%9Cio"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. liburing进行网络io</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-readv"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. readv</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E4%BD%9C%E7%94%A8"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">1. 作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E4%BB%A3%E7%A0%81-1"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">2. 代码</span></a></li></ol></li></ol></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2024 By Just花语</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="fas fa-sms"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.12.0"></script><script src="/js/main.js?v=4.12.0"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/click-heart.min.js" async="async" mobile="true"></script><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"></div></div><hr><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.12.0"></script></div></div></body></html>
