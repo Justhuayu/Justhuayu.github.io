@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>原子变量</title>
+      <link href="/2024/04/01/C-%E9%9B%B6%E5%A3%B0linux-24-%E5%8E%9F%E5%AD%90%E5%8F%98%E9%87%8F/"/>
+      <url>/2024/04/01/C-%E9%9B%B6%E5%A3%B0linux-24-%E5%8E%9F%E5%AD%90%E5%8F%98%E9%87%8F/</url>
+      
+        <content type="html"><![CDATA[<h1 id="原子变量"><a href="#原子变量" class="headerlink" title="原子变量"></a>原子变量</h1><h2 id="1-原理"><a href="#1-原理" class="headerlink" title="1. 原理"></a>1. 原理</h2><h3 id="1-什么是原子变量"><a href="#1-什么是原子变量" class="headerlink" title="1. 什么是原子变量"></a>1. 什么是原子变量</h3><p>​互斥锁是锁一段共享资源，这个资源可能是数据结构，变量等等。&#x3D;&#x3D;原子变量是锁一个变量&#x3D;&#x3D;，确保多线程在编辑共享变量时不会被干扰。</p><h3 id="2-原子变量的特性"><a href="#2-原子变量的特性" class="headerlink" title="2. 原子变量的特性"></a>2. 原子变量的特性</h3><h4 id="1-原子性"><a href="#1-原子性" class="headerlink" title="1. 原子性"></a>1. 原子性</h4><p>​其他线程不会见到中间过程，即要么没修改，要么修改完成。原子变量中只有&#x3D;&#x3D;atomic_flag&#x3D;&#x3D;支持无锁操作，因为&#x3D;&#x3D;atomic_flag 只占一个字节&#x3D;&#x3D;，本身具有原子性，不需要硬件来实现。</p><p>​而<code>std::atomic&lt;int&gt;、st::atomic&lt;float&gt;</code>等都是占4个字节。</p><h4 id="2-单处理器单核原子性"><a href="#2-单处理器单核原子性" class="headerlink" title="2. 单处理器单核原子性"></a>2. 单处理器单核原子性</h4><ol><li>只需保证操作指令不被中断即可</li><li>屏蔽中断</li><li>底层自旋锁</li></ol><h4 id="3-多处理器或多核原子性"><a href="#3-多处理器或多核原子性" class="headerlink" title="3. 多处理器或多核原子性"></a>3. 多处理器或多核原子性</h4><ol><li>不能被中断</li><li>以往x86，<code>lock</code>指令锁总线，避免&#x3D;&#x3D;所有内存&#x3D;&#x3D;的访问</li><li>现在<code>lock</code>指令，阻止其他核心对其&#x3D;&#x3D;相关内存&#x3D;&#x3D;的访问。</li></ol><h3 id="3-原子变量的使用"><a href="#3-原子变量的使用" class="headerlink" title="3. 原子变量的使用"></a>3. 原子变量的使用</h3><h4 id="1-函数"><a href="#1-函数" class="headerlink" title="1. 函数"></a>1. 函数</h4><ul><li><code>std::atomic&lt;T&gt;、atomic_flag</code></li><li><code>is_lock_free</code>是否支持无锁操作</li><li><code>store(T desired, std::memory_order order)</code>将指定值存储到原子对象中。 </li><li><code>load(std::memory_order order)</code>获取原子变量的当前值。</li><li><code>fetch_add、fetch_sub、fetch_and、fetch_or、frtch_xor</code></li><li><code>exchange(std::atomic&lt;T&gt;* obj, T desired)</code>: 访问和修改包含的值，将包含的值替换并返回它前面的值。如果替换成功，则返回原来的值。</li><li><code>compare_exchange_weak(T&amp; expected, T val, memory_order success, memory_orderfailure）</code>：比较一个值和一个期望值是否相等，如果相等则将该值替换成一个新值，并返回 true；否则不做任何操作并返回false。注意，compare_exchange_weak 函数是一个弱化版本的原子操作函数，因为在某些平台上它可能会失败并重试。如果需要保证严格的原子性，则应该使用<code>compare_exchange_strong</code> 函数。&#x3D;&#x3D;常与while循环搭配已防失败&#x3D;&#x3D;。</li><li><code>compare_exchange_strong</code>，性能不如<code>weak</code>，因为会阻塞当前线程。</li></ul><h3 id="4-互斥锁的实现原理"><a href="#4-互斥锁的实现原理" class="headerlink" title="4. 互斥锁的实现原理"></a>4. 互斥锁的实现原理</h3><h2 id="2-存储体系结构"><a href="#2-存储体系结构" class="headerlink" title="2. 存储体系结构"></a>2. 存储体系结构</h2><blockquote><p>cpu缓存</p></blockquote><img src="https://telegraph-image-9wl.pages.dev/file/5048c2a5dff98871c4f51.png" alt="image-20240401201542580" style="zoom:50%;" /><blockquote><p>cpu数据传输基本单位 —- catch line</p></blockquote><img src="https://telegraph-image-9wl.pages.dev/file/3c0bb281bb9592bd4a749.png" alt="image-20240401202255228" style="zoom:60%;" /><ol><li><code>flag</code> 缓存行catch line 的状态</li><li><code>tag</code> 标识缓存行数据对应的主存地址</li></ol><h3 id="1-读写策略"><a href="#1-读写策略" class="headerlink" title="1. 读写策略"></a>1. 读写策略</h3><img src="https://telegraph-image-9wl.pages.dev/file/f2dc97f01c25b3f9a6a9b.png" alt="image-20240401202917464" style="zoom:40%;" /><ol><li>从cpu核心读写数据到内存中时，先看缓存中是否有</li><li>缓存命中，直接写(读)，并标记为脏数据（内存里面没有，缓存有，就叫脏数据）</li><li>缓存没命中，定位一块缓存块，把缓存块中原来的脏数据写回内存，再把待写数据写到（从内存读到）缓存中。</li></ol><blockquote><p>尽量让热数据放在缓存中</p></blockquote><h3 id="2-缓存一致性"><a href="#2-缓存一致性" class="headerlink" title="2. 缓存一致性"></a>2. 缓存一致性</h3><blockquote><p>因为每个核心都有自己缓存，每个核心优先从自己的缓存读数据</p></blockquote><h4 id="1-写传播"><a href="#1-写传播" class="headerlink" title="1. 写传播"></a>1. 写传播</h4><ul><li>&#x3D;&#x3D;总线嗅探&#x3D;&#x3D; bus snooping</li><li>总线上有个字段被监听，当被修改时，会广播所有核心。</li><li>&#x3D;&#x3D;当写传播很多时，总线带宽压力就很大&#x3D;&#x3D;，尽量减少写传播</li></ul><h4 id="2-事务的串行化"><a href="#2-事务的串行化" class="headerlink" title="2. 事务的串行化"></a>2. 事务的串行化</h4><ul><li><code>lock</code> 锁</li><li>同一时间只有一个核心（线程）可以写相关内存，其余核心被锁住</li></ul><h4 id="3-MESI一致性协议"><a href="#3-MESI一致性协议" class="headerlink" title="3. MESI一致性协议"></a>3. MESI一致性协议</h4><ul><li>基于&#x3D;&#x3D;总线嗅探机制实现事务串行化&#x3D;&#x3D;，通过&#x3D;&#x3D;状态机降低总线带宽的压力&#x3D;&#x3D;</li><li>写后锁住&#x3D;&#x3D;ME&#x3D;&#x3D;两个状态，避免相关内存的访问</li></ul><blockquote><p>4个缓存数据状态</p></blockquote><ol><li>&#x3D;&#x3D;modified(M)&#x3D;&#x3D; 已修改。某个数据已修改，但是没有同步到内存中。</li><li>&#x3D;&#x3D;exclusive(e)&#x3D;&#x3D; 独占。某个数据块只在某核心当中，此时&#x3D;&#x3D;缓存和内存的数据一致&#x3D;&#x3D;。</li><li>&#x3D;&#x3D;shared(s)&#x3D;&#x3D; 共享。某个数据块在多个核心中加载，此时&#x3D;&#x3D;缓存和内存中的数据一致&#x3D;&#x3D;，</li><li>&#x3D;&#x3D;involidated(i)&#x3D;&#x3D; 已失效。某个数据块在核心中已失效，不是最新的数据。</li></ol><blockquote><p>状态机</p></blockquote><img src="https://telegraph-image-9wl.pages.dev/file/b74004db6e8e749ea4a96.png" alt="image-20240401210515176" style="zoom:73%">]]></content>
+      
+      
+      <categories>
+          
+          <category> C++ </category>
+          
+          <category> 零声Linux </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> C++ </tag>
+            
+            <tag> 组件 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>C++语法</title>
       <link href="/2024/03/27/C-%E9%9B%B6%E5%A3%B0linux-6-C-%E8%AF%AD%E6%B3%95/"/>
       <url>/2024/03/27/C-%E9%9B%B6%E5%A3%B0linux-6-C-%E8%AF%AD%E6%B3%95/</url>
